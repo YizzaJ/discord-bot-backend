@@ -1,7 +1,6 @@
 package es.upm.bot.news_scraper.elements;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import org.jsoup.Jsoup;
@@ -28,47 +27,39 @@ public class Article {
 		this.clase = clase;
 	}
 	public Article(Element e) {
-		base = e;
+		this.base = e;
 		this.title = e.getElementsByTag("header").text();
-//		this.link = e.getElementsByClass("ue-c-cover-content__link").attr("href");
 		this.link = e.getElementsByAttribute("href").first().attr("href");
-		this.link = urlCheck(link) ? link : (scraper.webPage + link);
-		
+		this.link = urlCheck(link);
 		this.clase = e.className();
 		this.content = readArticle();
 	}
 	
-	private Document parse() {
-		
-	        String html = "";
-			try{
-				html = Jsoup.connect(link).get().html();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			Document doc = Jsoup.parse(html);
-			return doc;
+	private static Document generateDoc(String url) {
+		String html = "";
+		try{
+			html = Jsoup.connect(urlCheck(url)).get().html();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return Jsoup.parse(html);
 	}
-	private String readArticle() {
-		
+	
+	private static String urlCheck(String url) {	
+		if(!url.startsWith("https://") && !url.startsWith("http://"))
+			return scraper.webPage + url;	
+		return url;
+	}
+	
+	private String readArticle() {	
 		String res = "";
-		Elements parrafos = parse().select("article p");
-		int index = 0;
+		Elements parrafos = generateDoc(link).select("article p");
 		for(Element e : parrafos) {
 			res += e.text();
 		}
 		
 		return res;
-		
-	}
-	
-	private boolean urlCheck(String url) {
-		boolean res = true;		
-		if(!url.startsWith("https://") && !url.startsWith("http://"))
-		res = false;	
-		return res;
-		
 	}
 
 	public String getTitle() {
