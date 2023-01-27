@@ -10,6 +10,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import es.upm.bot.news_scraper.elements.Article;
+import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
+import es.upm.bot.news_scraper.exceptions.TopicNotFoundException;
 
 
 
@@ -20,15 +22,16 @@ public class scraper {
 	private static String D = "https://www.eluniversal.com/";
 
 
-	public static String webPage = D;
+	public static String webPage = A;
 
 	public static int NEWS_LIMIT = 5;
 
 	
-	public static void getArticles(Document doc) {
+	public static void getArticles(Document doc) throws ArticlesNotFoundException {
 
 		Elements articles = doc.getElementsByTag("article");
-
+		if(articles.size() == 0)
+			throw new ArticlesNotFoundException();
 		int i = 0;
 		for(Element e : articles) {
 			if(i++ >= NEWS_LIMIT)
@@ -40,9 +43,12 @@ public class scraper {
 	}
 
 
-	public static void getArticlesTopic(String topic, Document doc) {
+	public static void getArticlesTopic(String topic, Document doc) throws TopicNotFoundException, ArticlesNotFoundException {
 		Elements headers = doc.select("body header");
-		for(Element e : headers.first().getElementsContainingText(topic)) {
+		Elements topics = headers.first().getElementsContainingText(topic);
+		if(topics.size() == 0)
+			throw new TopicNotFoundException();
+		for(Element e : topics) {
 			if(e.text().length() < 25) {
 				getArticles(generateDoc(e.getElementsByAttribute("href").first().attr("href")));
 				break;
@@ -68,9 +74,9 @@ public class scraper {
 	}
 
 
-	public static void main(String[] args) {
-		getArticles(generateDoc(webPage));
-		//getArticlesTopic("Deporte",generateDoc(webPage));
+	public static void main(String[] args) throws Exception {
+		//getArticles(generateDoc(webPage));
+		getArticlesTopic("Deportes",generateDoc(webPage));
 	}
 
 
