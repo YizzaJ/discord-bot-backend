@@ -3,6 +3,7 @@ package es.upm.bot.news_scraper.scraper;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,7 +27,7 @@ public class scraper {
 
 	public static int NEWS_LIMIT = 5;
 
-	
+
 	public static void getArticles(Document doc) throws ArticlesNotFoundException {
 
 		Elements articles = doc.getElementsByTag("article");
@@ -43,17 +44,43 @@ public class scraper {
 	}
 
 
-	public static void getArticlesTopic(String topic, Document doc) throws TopicNotFoundException, ArticlesNotFoundException {
+	public static void getArticlesFromTopicEntry(String t, Document doc) throws TopicNotFoundException, ArticlesNotFoundException {
 		Elements headers = doc.select("body header");
-		Elements topics = headers.first().getElementsContainingText(topic);
+		Elements topics = headers.first().getElementsContainingText(t);
 		if(topics.size() == 0)
 			throw new TopicNotFoundException();
 		for(Element e : topics) {
 			if(e.text().length() < 25) {
-				getArticles(generateDoc(e.getElementsByAttribute("href").first().attr("href")));
+				Element topic = e.getElementsByAttribute("href").first();
+				System.out.println(topic.className());
+				getTopicsFromTopicClass(topic.className(), doc);
+				//getArticles(generateDoc(topic.attr("href")));
 				break;
 			}
 		}
+	}
+
+	public static ArrayList<String[]> getTopicsFromTopicClass(String clase, Document doc) {
+		ArrayList<String[]> topicList = new ArrayList<>();
+
+		Elements topics = doc.getElementsByClass(clase);
+		System.out.println(topics.size());
+
+		for(Element e : topics) {
+
+			String topic = e.text();
+			String href = e.attr("href");
+
+			if(!href.equals("")) {
+				topicList.add(new String[]{topic,href});
+				System.out.println(e.text());
+				System.out.println(e.attr("href"));
+			}
+		}
+
+
+
+		return topicList;
 	}
 
 	private static Document generateDoc(String url) {
@@ -66,7 +93,7 @@ public class scraper {
 		}
 		return Jsoup.parse(html);
 	}
-	
+
 	private static String urlCheck(String url) {	
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
 			return scraper.webPage + url;	
@@ -75,8 +102,8 @@ public class scraper {
 
 
 	public static void main(String[] args) throws Exception {
-		//getArticles(generateDoc(webPage));
-		getArticlesTopic("Deportes",generateDoc(webPage));
+		getArticles(generateDoc(webPage));
+		//getArticlesFromTopicEntry("Deportes",generateDoc(webPage));
 	}
 
 
