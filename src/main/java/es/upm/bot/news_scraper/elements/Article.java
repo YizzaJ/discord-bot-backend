@@ -40,8 +40,8 @@ public class Article {
 		this.link = urlCheck(e.getElementsByAttribute("href").first().attr("href"));
 		this.clase = e.className();
 		this.content = readArticle();
-		this.image = urlCheck(getImage());
-		this.favicon = urlCheck(getFavicon());
+		this.image = urlCheck(searchImage());
+		this.favicon = urlCheck(searchFavicon());
 	}
 
 	private static Document generateDoc(String url) {
@@ -70,12 +70,12 @@ public class Article {
 
 		return parrafos.first().text();
 	}
-	private String getImage() {
+	private String searchImage() {
 		Elements articles = generateDoc(link).getElementsByTag("article").first().getElementsByTag("img");
 		return articles.first().attr("src");
 	}
 	
-	private String getFavicon() {
+	private String searchFavicon() {
 		Elements articles = generateDoc(link).getElementsByAttributeValueContaining("href", "favicon.ico");
 		return articles.first().attr("href");
 	}
@@ -112,6 +112,12 @@ public class Article {
 		this.clase = clase;
 	}
 
+	public String getImage() {
+		return image;
+	}
+	public String getFavicon() {
+		return favicon;
+	}
 	public ArrayList<String> getAttributes() {
 		return attributes;
 	}

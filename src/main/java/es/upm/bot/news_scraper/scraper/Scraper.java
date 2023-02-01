@@ -2,13 +2,21 @@ package es.upm.bot.news_scraper.scraper;
 
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+
+import javax.json.Json;
+import javax.json.stream.JsonGenerator;
+import javax.json.stream.JsonGeneratorFactory;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import com.fasterxml.jackson.core.JsonFactory;
 
 import es.upm.bot.news_scraper.elements.Article;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
@@ -23,9 +31,9 @@ public class Scraper {
 	private static String D = "https://www.eluniversal.com/";
 
 
-	public static String webPage = D;
+	public static String webPage = A;
 
-	public int NEWS_LIMIT = 1;
+	public int NEWS_LIMIT = 5;
 	private Document doc;
 	
 	public Scraper() {
@@ -36,6 +44,7 @@ public class Scraper {
 	public String getArticles() throws ArticlesNotFoundException {
 		String res = "";
 		Elements articles = doc.getElementsByTag("article");
+		ArrayList<Article> articleList = new ArrayList<>();
 		if(articles.size() == 0)
 			throw new ArticlesNotFoundException();
 		int i = 0;
@@ -46,10 +55,32 @@ public class Scraper {
 			System.out.println(a.toJson());
 			System.out.println();
 			res += a.toJson() + "\n";
+			articleList.add(a);
 		}
+		System.out.println(articlesToJson(articleList));
 		return res;
 	}
 
+	
+	public String getArticlesList() throws ArticlesNotFoundException {
+		String res = "";
+		Elements articles = doc.getElementsByTag("article");
+		ArrayList<Article> articleList = new ArrayList<>();
+		if(articles.size() == 0)
+			throw new ArticlesNotFoundException();
+		int i = 0;
+		for(Element e : articles) {
+			if(i++ >= NEWS_LIMIT)
+				break;
+			Article a = new Article(e);
+			System.out.println(a.toJson());
+			System.out.println();
+			res += a.toJson() + "\n";
+			articleList.add(a);
+		}
+		System.out.println(articlesToJson(articleList));
+		return articlesToJson(articleList);
+	}
 
 	public void getArticlesFromTopicEntry(String t) throws TopicNotFoundException, ArticlesNotFoundException {
 		Elements headers = doc.select("body header");
@@ -106,17 +137,31 @@ public class Scraper {
 			return Scraper.webPage + url;	
 		return url;
 	}
-
-	private String getFavIcon() {
-		String res = "";
-		Elements articles = doc.getElementsByAttributeValueContaining("href", "favicon.ico");
-		System.out.println("SIZEE " + articles.size());
-		int i = 0;
-		for(Element e : articles) {
-			System.out.println(e.attr("href"));
+	
+	private String articlesToJson(ArrayList<Article> articles) {
+		OutputStream os = new ByteArrayOutputStream(5000);
+		JsonGeneratorFactory factory = Json.createGeneratorFactory(null);
+		JsonGenerator generator = factory.createGenerator(os);
+		generator.writeStartArray();
+		for(Article a : articles) {		
+			generator
+			.writeStartObject()
+			.write("title", a.getTitle())
+			.write("image", a.getImage())
+			.write("content", a.getContent())
+			.write("authors", "autores")
+			.write("link", a.getLink())
+			.write("favicon", a.getFavicon())
+			.writeEnd();
 		}
-		return res;
+		generator.writeEnd();
+		generator.close();
+		
+		return os.toString();
+		
 	}
+
+
 
 //	public void main(String[] args) throws Exception {
 //		getArticles(generateDoc(webPage));

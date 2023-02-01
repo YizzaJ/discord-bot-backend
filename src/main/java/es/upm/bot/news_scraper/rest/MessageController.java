@@ -25,4 +25,10 @@ public class MessageController {
     	String articles = scraper.getArticles();
         return new ResponseEntity<>(articles, HttpStatus.OK);
     }
+    
+    @GetMapping("newslist")
+    public ResponseEntity<String> getAllList() throws ArticlesNotFoundException {
+    	String articles = scraper.getArticlesList();
+        return new ResponseEntity<>(articles, HttpStatus.OK);
+    }
 }
