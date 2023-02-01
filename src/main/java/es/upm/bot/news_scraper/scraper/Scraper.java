@@ -16,7 +16,7 @@ import es.upm.bot.news_scraper.exceptions.TopicNotFoundException;
 
 
 
-public class scraper {
+public class Scraper {
 	private static String A = "https://www.elmundo.es/";
 	private static String B = "https://www.antena3.com/noticias/";
 	private static String C = "https://elpais.com/";
@@ -25,11 +25,16 @@ public class scraper {
 
 	public static String webPage = A;
 
-	public static int NEWS_LIMIT = 5;
+	public int NEWS_LIMIT = 1;
+	private Document doc;
+	
+	public Scraper() {
+		doc = generateDoc(webPage);
+	}
 
 
-	public static void getArticles(Document doc) throws ArticlesNotFoundException {
-
+	public String getArticles() throws ArticlesNotFoundException {
+		String res = "";
 		Elements articles = doc.getElementsByTag("article");
 		if(articles.size() == 0)
 			throw new ArticlesNotFoundException();
@@ -38,13 +43,15 @@ public class scraper {
 			if(i++ >= NEWS_LIMIT)
 				break;
 			Article a = new Article(e);
-			System.out.println(a.toString());
+			System.out.println(a.toJson());
 			System.out.println();
+			res += a.toJson() + "\n";
 		}
+		return res;
 	}
 
 
-	public static void getArticlesFromTopicEntry(String t, Document doc) throws TopicNotFoundException, ArticlesNotFoundException {
+	public void getArticlesFromTopicEntry(String t) throws TopicNotFoundException, ArticlesNotFoundException {
 		Elements headers = doc.select("body header");
 		Elements topics = headers.first().getElementsContainingText(t);
 		if(topics.size() == 0)
@@ -53,14 +60,14 @@ public class scraper {
 			if(e.text().length() < 25) {
 				Element topic = e.getElementsByAttribute("href").first();
 				System.out.println(topic.className());
-				getTopicsFromTopicClass(topic.className(), doc);
+				getTopicsFromTopicClass(topic.className());
 				//getArticles(generateDoc(topic.attr("href")));
 				break;
 			}
 		}
 	}
 
-	public static ArrayList<String[]> getTopicsFromTopicClass(String clase, Document doc) {
+	public ArrayList<String[]> getTopicsFromTopicClass(String clase) {
 		ArrayList<String[]> topicList = new ArrayList<>();
 
 		Elements topics = doc.getElementsByClass(clase);
@@ -83,7 +90,7 @@ public class scraper {
 		return topicList;
 	}
 
-	private static Document generateDoc(String url) {
+	private Document generateDoc(String url) {
 		String html = "";
 		try{
 			html = Jsoup.connect(urlCheck(url)).get().html();
@@ -94,17 +101,17 @@ public class scraper {
 		return Jsoup.parse(html);
 	}
 
-	private static String urlCheck(String url) {	
+	private String urlCheck(String url) {	
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
-			return scraper.webPage + url;	
+			return Scraper.webPage + url;	
 		return url;
 	}
 
 
-	public static void main(String[] args) throws Exception {
-		getArticles(generateDoc(webPage));
-		//getArticlesFromTopicEntry("Deportes",generateDoc(webPage));
-	}
+//	public void main(String[] args) throws Exception {
+//		getArticles(generateDoc(webPage));
+//		//getArticlesFromTopicEntry("Deportes",generateDoc(webPage));
+//	}
 
 
 }

@@ -1,26 +1,32 @@
 package es.upm.bot.news_scraper.elements;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+
+import javax.json.Json;
+import javax.json.stream.JsonGenerator;
+import javax.json.stream.JsonGeneratorFactory;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import es.upm.bot.news_scraper.scraper.scraper;
+import es.upm.bot.news_scraper.scraper.Scraper;
 
 public class Article {
-	
+
 	private Element base;
-	
+
 	private String title;
 	private String link;
 	private String clase;
 	private String content;
 	private ArrayList<String> authors;
 	private ArrayList<String> attributes;
-	
+
 	public Article(String title, String link, String clase) {
 		this.title = title;
 		this.link = link;
@@ -34,7 +40,7 @@ public class Article {
 		this.clase = e.className();
 		this.content = readArticle();
 	}
-	
+
 	private static Document generateDoc(String url) {
 		String html = "";
 		try{
@@ -45,20 +51,20 @@ public class Article {
 		}
 		return Jsoup.parse(html);
 	}
-	
+
 	private static String urlCheck(String url) {	
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
-			return scraper.webPage + url;	
+			return Scraper.webPage + url;	
 		return url;
 	}
-	
+
 	private String readArticle() {	
 		String res = "";
 		Elements parrafos = generateDoc(link).select("article p");
 		for(Element e : parrafos) {
 			res += e.text();
 		}
-		
+
 		return res;
 	}
 
@@ -97,11 +103,11 @@ public class Article {
 	public ArrayList<String> getAttributes() {
 		return attributes;
 	}
-	
+
 	public void addAttributes(String a) {
 		attributes.add(a);
 	}
-	
+
 	public void removeAttributes(String a) {
 		attributes.remove(a);
 	}
@@ -110,14 +116,18 @@ public class Article {
 		this.attributes = attributes;
 	}
 
-	public ArrayList<String> getAuthors() {
-		return authors;
+	public String getAuthors() {
+		String res = "";
+
+		for(String a : authors)
+			res += a + ", ";
+		return res;
 	}
-	
+
 	public void addAuthors(String a) {
 		authors.add(a);
 	}
-	
+
 	public void removeAuthors(String a) {
 		authors.remove(a);
 	}
@@ -132,10 +142,21 @@ public class Article {
 				+ "title=" + title + ", \n link=" + link + ", \n clase=" + clase + ", \n content=" + content + ", \n authors="
 				+ authors + ", \n attributes=" + attributes + "]";
 	}
-	
-	
-	
-	
-	
 
+	public String toJson() {
+		OutputStream os = new ByteArrayOutputStream(2000);
+		JsonGeneratorFactory factory = Json.createGeneratorFactory(null);
+		JsonGenerator generator = factory.createGenerator(os);
+		generator
+		.writeStartObject()
+		.write("title", title)
+		.write("image", "im")
+		.write("content", "contenidooo")
+		.write("authors", "autores")
+		.write("link", link)
+		.writeEnd();
+		generator.close();
+		return os.toString();
+	}
+	
 }
