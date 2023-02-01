@@ -34,6 +34,7 @@ public class Scraper {
 
 
 	public String getArticles() throws ArticlesNotFoundException {
+		getFavIcon();
 		String res = "";
 		Elements articles = doc.getElementsByTag("article");
 		if(articles.size() == 0)
@@ -107,6 +108,16 @@ public class Scraper {
 		return url;
 	}
 
+	private String getFavIcon() {
+		String res = "";
+		Elements articles = doc.getElementsByAttributeValueContaining("href", "favicon.ico");
+		System.out.println("SIZEE " + articles.size());
+		int i = 0;
+		for(Element e : articles) {
+			System.out.println(e.attr("href"));
+		}
+		return res;
+	}
 
 //	public void main(String[] args) throws Exception {
 //		getArticles(generateDoc(webPage));

@@ -24,10 +24,12 @@ public class Article {
 	private String link;
 	private String clase;
 	private String content;
+	private String image;
+	private String favicon;
 	private ArrayList<String> authors;
 	private ArrayList<String> attributes;
 
-	public Article(String title, String link, String clase) {
+	public Article(String title, String link, String clase, String image, String favicon) {
 		this.title = title;
 		this.link = link;
 		this.clase = clase;
@@ -35,10 +37,11 @@ public class Article {
 	public Article(Element e) {
 		this.base = e;
 		this.title = e.getElementsByTag("header").text();
-		this.link = e.getElementsByAttribute("href").first().attr("href");
-		this.link = urlCheck(link);
+		this.link = urlCheck(e.getElementsByAttribute("href").first().attr("href"));
 		this.clase = e.className();
 		this.content = readArticle();
+		this.image = urlCheck(getImage());
+		this.favicon = urlCheck(getFavicon());
 	}
 
 	private static Document generateDoc(String url) {
@@ -66,6 +69,15 @@ public class Article {
 		}
 
 		return res;
+	}
+	private String getImage() {
+		Elements articles = generateDoc(link).getElementsByTag("article").first().getElementsByTag("img");
+		return articles.first().attr("src");
+	}
+	
+	private String getFavicon() {
+		Elements articles = generateDoc(link).getElementsByAttributeValueContaining("href", "favicon.ico");
+		return articles.first().attr("href");
 	}
 
 	public String getTitle() {
@@ -150,10 +162,11 @@ public class Article {
 		generator
 		.writeStartObject()
 		.write("title", title)
-		.write("image", "im")
+		.write("image", image)
 		.write("content", "contenidooo")
 		.write("authors", "autores")
 		.write("link", link)
+		.write("favicon", favicon)
 		.writeEnd();
 		generator.close();
 		return os.toString();
