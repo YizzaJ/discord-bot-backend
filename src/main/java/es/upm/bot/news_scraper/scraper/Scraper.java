@@ -23,7 +23,7 @@ public class Scraper {
 	private static String D = "https://www.eluniversal.com/";
 
 
-	public static String webPage = A;
+	public static String webPage = D;
 
 	public int NEWS_LIMIT = 1;
 	private Document doc;
@@ -34,7 +34,6 @@ public class Scraper {
 
 
 	public String getArticles() throws ArticlesNotFoundException {
-		getFavIcon();
 		String res = "";
 		Elements articles = doc.getElementsByTag("article");
 		if(articles.size() == 0)

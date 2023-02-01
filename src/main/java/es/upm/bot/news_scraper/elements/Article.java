@@ -64,11 +64,11 @@ public class Article {
 	private String readArticle() {	
 		String res = "";
 		Elements parrafos = generateDoc(link).select("article p");
-		for(Element e : parrafos) {
-			res += e.text();
-		}
+//		for(Element e : parrafos) {
+//			res += e.text();
+//		}
 
-		return res;
+		return parrafos.first().text();
 	}
 	private String getImage() {
 		Elements articles = generateDoc(link).getElementsByTag("article").first().getElementsByTag("img");
@@ -163,7 +163,7 @@ public class Article {
 		.writeStartObject()
 		.write("title", title)
 		.write("image", image)
-		.write("content", "contenidooo")
+		.write("content", content)
 		.write("authors", "autores")
 		.write("link", link)
 		.write("favicon", favicon)
