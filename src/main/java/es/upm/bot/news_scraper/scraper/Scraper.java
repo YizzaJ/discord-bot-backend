@@ -39,6 +39,11 @@ public class Scraper {
 	public Scraper() {
 		doc = generateDoc(webPage);
 	}
+	
+	public void changeProvider(String provider) {
+		webPage = provider;
+		doc = generateDoc(webPage);
+	}
 
 
 	public String getArticles() throws ArticlesNotFoundException {
@@ -73,6 +78,7 @@ public class Scraper {
 			if(i++ >= NEWS_LIMIT)
 				break;
 			Article a = new Article(e);
+			System.out.println("SCRAPER: getArticlesList()");
 			System.out.println(a.toJson());
 			System.out.println();
 			res += a.toJson() + "\n";

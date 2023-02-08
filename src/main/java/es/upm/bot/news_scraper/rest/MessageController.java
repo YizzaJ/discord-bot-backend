@@ -15,11 +15,6 @@ public class MessageController {
 	
 	Scraper scraper = new Scraper();
 	
-	@PostMapping("/news/send-message")
-	public void receiveMessage(@RequestBody String message) {
-		System.out.println("MANDO MENSAJE CON POST DESDE NEWS SCRAPER: " + message);
-	}
-	
     @GetMapping("news")
     public ResponseEntity<String> getAll() throws ArticlesNotFoundException {
     	String articles = scraper.getArticles();
@@ -35,5 +30,10 @@ public class MessageController {
 	@PostMapping("change")
 	public void changeProvider(@RequestBody String message) {
 		System.out.println("MANDO MENSAJE CON POST DESDE NEWS SCRAPER: " + message);
+		String newProvider = message.replace("[", "");
+		newProvider = newProvider.replace("]", "");
+		System.out.println("MANDO MENSAJE CON POST DESDE NEWS SCRAPER: " + newProvider);
+		scraper.changeProvider(newProvider);
+		Scraper.webPage = newProvider;
 	}
 }
