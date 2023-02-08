@@ -31,7 +31,7 @@ public class Scraper {
 	private static String D = "https://www.eluniversal.com/";
 
 
-	public static String webPage = A;
+	public static String webPage = B;
 
 	public int NEWS_LIMIT = 5;
 	private Document doc;

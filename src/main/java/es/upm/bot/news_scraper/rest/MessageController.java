@@ -31,4 +31,9 @@ public class MessageController {
     	String articles = scraper.getArticlesList();
         return new ResponseEntity<>(articles, HttpStatus.OK);
     }
+    
+	@PostMapping("change")
+	public void changeProvider(@RequestBody String message) {
+		System.out.println("MANDO MENSAJE CON POST DESDE NEWS SCRAPER: " + message);
+	}
 }
