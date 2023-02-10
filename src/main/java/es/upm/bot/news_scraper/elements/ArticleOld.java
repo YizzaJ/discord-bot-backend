@@ -16,7 +16,7 @@ import org.jsoup.select.Elements;
 
 import es.upm.bot.news_scraper.scraper.Scraper;
 
-public class Article {
+public class ArticleOld {
 
 	private Element base;
 
@@ -29,12 +29,12 @@ public class Article {
 	private ArrayList<String> authors;
 	private ArrayList<String> attributes;
 
-	public Article(String title, String link, String clase, String image, String favicon) {
+	public ArticleOld(String title, String link, String clase, String image, String favicon) {
 		this.title = title;
 		this.link = link;
 		this.clase = clase;
 	}
-	public Article(Element e) {
+	public ArticleOld(Element e) {
 		this.base = e;
 		this.title = e.getElementsByTag("header").text();
 		this.link = urlCheck(e.getElementsByAttribute("href").first().attr("href"));
@@ -76,8 +76,9 @@ public class Article {
 	}
 	
 	private String searchFavicon() {
-		Elements articles = generateDoc(link).getElementsByAttributeValueContaining("href", "favicon.ico");
-		return articles.first().attr("href");
+//		Elements articles = generateDoc(link).getElementsByAttributeValueContaining("href", "favicon.ico");
+//		return articles.first().attr("href");
+		return "https://www.google.com/s2/favicons?domain="+ Scraper.webPage+"&sz=128";
 	}
 
 	public String getTitle() {

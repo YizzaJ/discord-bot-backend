@@ -18,7 +18,7 @@ import org.jsoup.select.Elements;
 
 import com.fasterxml.jackson.core.JsonFactory;
 
-import es.upm.bot.news_scraper.elements.Article;
+import es.upm.bot.news_scraper.elements.ArticleOld;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
 import es.upm.bot.news_scraper.exceptions.TopicNotFoundException;
 
@@ -46,49 +46,49 @@ public class Scraper {
 	}
 
 
-	public String getArticles() throws ArticlesNotFoundException {
+	public String getArticleOlds() throws ArticlesNotFoundException {
 		String res = "";
-		Elements articles = doc.getElementsByTag("article");
-		ArrayList<Article> articleList = new ArrayList<>();
-		if(articles.size() == 0)
+		Elements ArticleOlds = doc.getElementsByTag("ArticleOld");
+		ArrayList<ArticleOld> ArticleOldList = new ArrayList<>();
+		if(ArticleOlds.size() == 0)
 			throw new ArticlesNotFoundException();
 		int i = 0;
-		for(Element e : articles) {
+		for(Element e : ArticleOlds) {
 			if(i++ >= NEWS_LIMIT)
 				break;
-			Article a = new Article(e);
+			ArticleOld a = new ArticleOld(e);
 			System.out.println(a.toJson());
 			System.out.println();
 			res += a.toJson() + "\n";
-			articleList.add(a);
+			ArticleOldList.add(a);
 		}
-		System.out.println(articlesToJson(articleList));
+		System.out.println(ArticleOldsToJson(ArticleOldList));
 		return res;
 	}
 
 	
-	public String getArticlesList() throws ArticlesNotFoundException {
+	public String getArticleOldsList() throws ArticlesNotFoundException {
 		String res = "";
-		Elements articles = doc.getElementsByTag("article");
-		ArrayList<Article> articleList = new ArrayList<>();
-		if(articles.size() == 0)
+		Elements ArticleOlds = doc.getElementsByTag("ArticleOld");
+		ArrayList<ArticleOld> ArticleOldList = new ArrayList<>();
+		if(ArticleOlds.size() == 0)
 			throw new ArticlesNotFoundException();
 		int i = 0;
-		for(Element e : articles) {
+		for(Element e : ArticleOlds) {
 			if(i++ >= NEWS_LIMIT)
 				break;
-			Article a = new Article(e);
-			System.out.println("SCRAPER: getArticlesList()");
+			ArticleOld a = new ArticleOld(e);
+			System.out.println("SCRAPER: getArticleOldsList()");
 			System.out.println(a.toJson());
 			System.out.println();
 			res += a.toJson() + "\n";
-			articleList.add(a);
+			ArticleOldList.add(a);
 		}
-		System.out.println(articlesToJson(articleList));
-		return articlesToJson(articleList);
+		System.out.println(ArticleOldsToJson(ArticleOldList));
+		return ArticleOldsToJson(ArticleOldList);
 	}
 
-	public void getArticlesFromTopicEntry(String t) throws TopicNotFoundException, ArticlesNotFoundException {
+	public void getArticleOldsFromTopicEntry(String t) throws TopicNotFoundException, ArticlesNotFoundException {
 		Elements headers = doc.select("body header");
 		Elements topics = headers.first().getElementsContainingText(t);
 		if(topics.size() == 0)
@@ -98,7 +98,7 @@ public class Scraper {
 				Element topic = e.getElementsByAttribute("href").first();
 				System.out.println(topic.className());
 				getTopicsFromTopicClass(topic.className());
-				//getArticles(generateDoc(topic.attr("href")));
+				//getArticleOlds(generateDoc(topic.attr("href")));
 				break;
 			}
 		}
@@ -144,12 +144,12 @@ public class Scraper {
 		return url;
 	}
 	
-	private String articlesToJson(ArrayList<Article> articles) {
+	private String ArticleOldsToJson(ArrayList<ArticleOld> ArticleOlds) {
 		OutputStream os = new ByteArrayOutputStream(5000);
 		JsonGeneratorFactory factory = Json.createGeneratorFactory(null);
 		JsonGenerator generator = factory.createGenerator(os);
 		generator.writeStartArray();
-		for(Article a : articles) {		
+		for(ArticleOld a : ArticleOlds) {		
 			generator
 			.writeStartObject()
 			.write("title", a.getTitle())
@@ -170,8 +170,8 @@ public class Scraper {
 
 
 //	public void main(String[] args) throws Exception {
-//		getArticles(generateDoc(webPage));
-//		//getArticlesFromTopicEntry("Deportes",generateDoc(webPage));
+//		getArticleOlds(generateDoc(webPage));
+//		//getArticleOldsFromTopicEntry("Deportes",generateDoc(webPage));
 //	}
 
 
