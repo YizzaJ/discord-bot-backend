@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
@@ -34,8 +36,11 @@ public class TechnicalScraper {
 	private String articleType;
 	private String firstParagraphType;
 	private String topicType;
+	
+	private Map<String,ScrapingProperties> msp;
 
 	public TechnicalScraper(String webPage, ScrapingProperties sp) {
+		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER CON PARAMETROS");
 		this.webPage = webPage;
 		this.doc = generateDoc(webPage);
 		this.properties = sp;
@@ -43,16 +48,20 @@ public class TechnicalScraper {
 		this.articleType = sp.getArticle().getType();
 		this.firstParagraphType = sp.getFirstParagraph().getType();
 		this.topicType = sp.getTopic().getType();
+		this.msp = new HashMap<>();
+		
+		msp.put(webPage, sp);
 	}
 	
 	public TechnicalScraper() {
-		this.webPage = "https://www.elmundo.es/";
+		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER SIN PARAMETROS");
+		this.webPage = "https://www.elpais.com/";
 		this.doc = generateDoc(webPage);
 		
 		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","article"));
-		properties.add(new Property("FirstParagraph","",""));
-		properties.add(new Property("Topic","Class","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
+		properties.add(new Property("Article","Tag","","article"));
+		properties.add(new Property("FirstParagraph","","",""));
+		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
 
 		ScrapingProperties sp = new ScrapingProperties(properties);
 		
@@ -291,6 +300,14 @@ public class TechnicalScraper {
 
 	public String getWebPage() {
 		return webPage;
+	}
+
+	public Map<String, ScrapingProperties> getMsp() {
+		return msp;
+	}
+	
+	public void addScrapingProperty(String webPage, ScrapingProperties sp) {
+		msp.put(webPage, sp);
 	}
 
 

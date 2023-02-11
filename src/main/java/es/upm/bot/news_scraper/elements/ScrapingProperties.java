@@ -7,6 +7,7 @@ public class ScrapingProperties{
 	private Property article;
 	private Property firstParagraph;
 	private Property topic;
+	private ArrayList<Property> properties;
 
 	public ScrapingProperties(Property article, Property topic) {
 		this.article = article;
@@ -14,6 +15,7 @@ public class ScrapingProperties{
 	}
 
 	public ScrapingProperties(ArrayList<Property> properties) {
+		this.properties = properties;
 		for(Property p : properties) {
 			switch(p.getUse()) {
 			case "Article": 
@@ -42,6 +44,10 @@ public class ScrapingProperties{
 
 	public Property getTopic() {
 		return topic;
+	}
+
+	public ArrayList<Property> getProperties() {
+		return properties;
 	}
 
 

@@ -7,12 +7,6 @@ public class Property {
 	private String attributeName; // if type is an Attribute
 	private String value; //name of the type. if type is Attribute this is de content of the attribute
 	
-	public Property(String use, String type, String value) {
-		this.use = use;
-		this.type = type;
-		this.value = value;
-	}
-	
 	public Property(String use, String attr, String attributeName, String value) {
 		this.use = use;
 		this.type = attr;

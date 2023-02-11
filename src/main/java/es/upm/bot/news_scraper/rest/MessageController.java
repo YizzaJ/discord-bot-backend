@@ -27,11 +27,12 @@ public class MessageController {
 	private TechnicalScraper ts;
 	
 	public MessageController() {
+		System.err.println("LLAMADA CONSTRUCTOR MESSAGECONTROLLER CON PARAMETROS");
 		String webPage =  ("https://www.elmundo.es/");
 		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","article"));
-		properties.add(new Property("FirstParagraph","",""));
-		properties.add(new Property("Topic","Class","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
+		properties.add(new Property("Article","Tag","","article"));
+		properties.add(new Property("FirstParagraph","","",""));
+		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
 
 		ScrapingProperties sp = new ScrapingProperties(properties);
 
@@ -41,9 +42,9 @@ public class MessageController {
 	private TechnicalScraper testMundo() {
 		String webPage =  ("https://www.elmundo.es/");
 		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","article"));
-		properties.add(new Property("FirstParagraph","",""));
-		properties.add(new Property("Topic","Class","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
+		properties.add(new Property("Article","Tag","","article"));
+		properties.add(new Property("FirstParagraph","","",""));
+		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
 
 		ScrapingProperties sp = new ScrapingProperties(properties);
 		TechnicalScraper ts= new TechnicalScraper(webPage, sp);
@@ -56,8 +57,8 @@ public class MessageController {
 	private TechnicalScraper testPais() {
 		String webPage =  ("https://elpais.com/");
 		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","article"));
-		properties.add(new Property("FirstParagraph","Class","a_c clearfix"));
+		properties.add(new Property("Article","Tag","","article"));
+		properties.add(new Property("FirstParagraph","Class","","a_c clearfix"));
 		properties.add(new Property("Topic","Attribute","cmp-ltrk","portada_menu"));
 
 		ScrapingProperties sp = new ScrapingProperties(properties);
@@ -81,6 +82,14 @@ public class MessageController {
     	String articles = ts.getArticles();
         return new ResponseEntity<>(articles, HttpStatus.OK);
     }
+    
+	@PostMapping("add")
+	public void addProvider(@RequestBody String message) {
+		String newProvider = message.replace("[", "");
+		newProvider = newProvider.replace("]", "");
+		ts.changeProvider(newProvider);
+		Scraper.webPage = newProvider;
+	}
     
 	@PostMapping("change")
 	public void changeProvider(@RequestBody String message) {
