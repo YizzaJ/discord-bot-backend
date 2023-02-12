@@ -8,10 +8,6 @@ import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 
-import es.upm.bot.news_scraper.elements.Article;
-import es.upm.bot.news_scraper.elements.Property;
-import es.upm.bot.news_scraper.elements.ScrapingProperties;
-
 public class WriterJson {
 
 
@@ -24,17 +20,16 @@ public class WriterJson {
 		this.generator = factory.createGenerator(os);
 	}
 
-	public String articlesToJson(ArrayList<Article> articles) {
+	public String articlesToJson(ArrayList<String[]> articles) {
 		generator.writeStartArray();
-		for(Article a : articles) {		
+		for(String[] a : articles) {		
 			generator
 			.writeStartObject()
-			.write("title", a.getTitle())
-			.write("image", a.getImage())
-			.write("content", a.getContent())
-			.write("authors", "autores")
-			.write("link", a.getLink())
-			.write("favicon", a.getFavicon())
+			.write("title", a[0])
+			.write("image", a[1])
+			.write("content", a[2])
+			.write("link", a[3])
+			.write("favicon", a[4])
 			.writeEnd();
 		}
 		generator.writeEnd();
@@ -43,18 +38,25 @@ public class WriterJson {
 		return os.toString();
 	}
 
-	public String scrapingPropertiesToJson(ArrayList<ScrapingProperties> scrapingPropertiesList) {
+	public String scrapingPropertiesToJson(ArrayList<ArrayList<String[]>> scrapingPropertiesList) {
 		generator.writeStartArray();
-		for(ScrapingProperties sp : scrapingPropertiesList) {	
+		for(ArrayList<String[]> sp : scrapingPropertiesList) {
 			generator.writeStartArray();
-			for(Property p : sp.getProperties()) {
+			generator
+			.writeStartObject()
+			.write("webSite", sp.remove(0)[0])
+			.writeEnd();
+			for(String[] p : sp) {	
+				generator.writeStartArray();
 				generator
 				.writeStartObject()
-				.write("use", p.getUse())
-				.write("type", p.getType())
-				.write("attributeName", p.getAttributeName())
-				.write("value", p.getValue())
+				.write("webSite", p[0])
+				.write("use", p[1])
+				.write("type", p[2])
+				.write("attributeName", p[3])
+				.write("value", p[4])
 				.writeEnd();
+				generator.writeEnd();
 			}
 			generator.writeEnd();
 		}

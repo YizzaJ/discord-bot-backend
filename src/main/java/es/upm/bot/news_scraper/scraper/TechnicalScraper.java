@@ -15,7 +15,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import es.upm.bot.news_scraper.elements.Article;
@@ -23,6 +22,7 @@ import es.upm.bot.news_scraper.elements.Property;
 import es.upm.bot.news_scraper.elements.ScrapingProperties;
 import es.upm.bot.news_scraper.elements.Topic;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
+import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
 
 @Service
 public class TechnicalScraper {
@@ -90,9 +90,26 @@ public class TechnicalScraper {
 		return url;
 	}
 
-	public void changeProvider(String provider) {
+	public void changeProvider(String provider) throws ProviderNotFoundException {
+		
+		System.out.println("Intento cambiar al proveedor " + provider);
+		System.out.println("Existen los siguientes : \n" + msp.keySet().toString());
+		ScrapingProperties sp = msp.get(provider);
+		
+		if(sp == null)
+			throw new ProviderNotFoundException();
+		
+		
 		webPage = provider;
 		doc = generateDoc(webPage);
+		
+		this.properties = sp;
+
+		this.articleType = sp.getArticle().getType();
+		this.firstParagraphType = sp.getFirstParagraph().getType();
+		this.topicType = sp.getTopic().getType();
+		
+		
 	}
 
 
@@ -308,6 +325,10 @@ public class TechnicalScraper {
 	
 	public void addScrapingProperty(String webPage, ScrapingProperties sp) {
 		msp.put(webPage, sp);
+	}
+	
+	public void addProviders(Map<String, ScrapingProperties> providers) {
+		msp.putAll(providers);
 	}
 
 

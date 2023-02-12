@@ -1,7 +1,6 @@
 package es.upm.bot.news_scraper.json;
 
 import java.io.StringReader;
-import java.time.Instant;
 import java.util.ArrayList;
 
 import javax.json.Json;
@@ -10,8 +9,6 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 
-import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.rest.util.Color;
 import es.upm.bot.news_scraper.elements.Article;
 import es.upm.bot.news_scraper.elements.Property;
 import es.upm.bot.news_scraper.elements.ScrapingProperties;

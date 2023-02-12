@@ -16,8 +16,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.fasterxml.jackson.core.JsonFactory;
-
 import es.upm.bot.news_scraper.elements.ArticleOld;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
 import es.upm.bot.news_scraper.exceptions.TopicNotFoundException;
