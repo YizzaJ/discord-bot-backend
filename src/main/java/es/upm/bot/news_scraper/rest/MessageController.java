@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import es.upm.bot.news_scraper.elements.Property;
 import es.upm.bot.news_scraper.elements.ScrapingProperties;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
+import es.upm.bot.news_scraper.exceptions.FirstParagraphNotFoundException;
+import es.upm.bot.news_scraper.exceptions.ImageNotFoundException;
 import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
 import es.upm.bot.news_scraper.scraper.Scraper;
 import es.upm.bot.news_scraper.scraper.TechnicalScraper;
@@ -71,46 +73,14 @@ public class MessageController {
 		
 	}
 
-	private TechnicalScraper testMundo() {
-		String webPage =  ("https://www.elmundo.es/");
-		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","","article"));
-		properties.add(new Property("FirstParagraph","","",""));
-		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
-
-		ScrapingProperties sp = new ScrapingProperties(properties);
-		TechnicalScraper ts= new TechnicalScraper(webPage, sp);
-
-		System.out.println(ts.getArticles());
-		ts.getTopics();
-		return ts;
-	}
-
-	private TechnicalScraper testPais() {
-		String webPage =  ("https://elpais.com/");
-		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","","article"));
-		properties.add(new Property("FirstParagraph","Class","","a_c clearfix"));
-		properties.add(new Property("Topic","Attribute","cmp-ltrk","portada_menu"));
-
-		ScrapingProperties sp = new ScrapingProperties(properties);
-
-		TechnicalScraper ts= new TechnicalScraper(webPage, sp);
-
-		System.out.println(ts.getArticles());
-		ts.getTopics();
-		return ts;
-	}
-
-
 	@GetMapping("news")
-	public ResponseEntity<String> getAll() throws ArticlesNotFoundException {
+	public ResponseEntity<String> getAll() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String articles = ts.getArticles();
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
 	@GetMapping("newslist")
-	public ResponseEntity<String> getAllList() throws ArticlesNotFoundException {
+	public ResponseEntity<String> getAllList() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String articles = ts.getArticles();
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
@@ -118,7 +88,7 @@ public class MessageController {
 	@PostMapping("add")
 	public void addProvider(@RequestBody String message) {
 		System.err.println(message);
-		ts.addProviders(providersToJson(message));
+		ts.addProviders(message);
 	}
 
 	@PostMapping("change")
@@ -126,6 +96,13 @@ public class MessageController {
 		String newProvider = message.replace("[", "");
 		newProvider = newProvider.replace("]", "");
 		ts.changeProvider(newProvider);
+	}
+	
+	@GetMapping("providerlist")
+	public ResponseEntity<String> getProviders() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+		String providers = ts.getProviders();
+		System.out.println("PROVIDERS " + providers);
+		return new ResponseEntity<>(providers, HttpStatus.OK);
 	}
 
 	@GetMapping("topiclist")
@@ -145,39 +122,4 @@ public class MessageController {
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 	
-
-	public Map<String, ScrapingProperties> providersToJson(String body){	
-		StringReader sr = new StringReader(body);
-		JsonReader reader = Json.createReader(sr);
-		JsonArray array = reader.readArray();
-
-		Map<String, ScrapingProperties> scrapingPropertiesList = new HashMap<>();
-		for(JsonValue jo : array) {
-			JsonArray websitePropertiesPar = jo.asJsonArray();
-			System.out.println(websitePropertiesPar);
-			boolean webSiteExtracted = false;
-			String webSite = "";
-			ArrayList<Property> propertyList = new ArrayList<>();
-			for(JsonValue par : websitePropertiesPar) {
-				if(!webSiteExtracted) {
-					webSite = par.asJsonObject().getString("webSite");
-					webSiteExtracted = true;
-				}
-				else {
-					JsonArray arr = par.asJsonArray();
-					
-					for(JsonValue jo2 : arr) {
-						JsonObject obj = jo2.asJsonObject();	
-						Property property = new Property(obj.getString("use"), obj.getString("type"),
-								obj.getString("attributeName"), obj.getString("value"));
-						propertyList.add(property);
-					}
-					scrapingPropertiesList.put(webSite,new ScrapingProperties(propertyList));	
-				}
-			}
-		}
-
-		return scrapingPropertiesList;
-	}
-
 }
