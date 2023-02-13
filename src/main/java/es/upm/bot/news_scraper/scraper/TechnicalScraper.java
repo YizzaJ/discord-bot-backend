@@ -70,7 +70,7 @@ public class TechnicalScraper {
 		properties.add(new Property("FirstParagraph","","",""));
 		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
 
-		ScrapingProperties sp = new ScrapingProperties(properties);
+		ScrapingProperties sp = new ScrapingProperties("El pais", webPage, properties);
 
 
 		this.properties = sp;
@@ -342,7 +342,7 @@ public class TechnicalScraper {
 			generator
 			.writeStartObject()
 			.write("webSite", webSite)
-			.write("name", "name")
+			.write("name", msp.get(webSite).getName())
 			.writeEnd();
 		}
 		generator.writeEnd();
@@ -362,12 +362,18 @@ public class TechnicalScraper {
 			JsonArray websitePropertiesPar = jo.asJsonArray();
 			System.out.println(websitePropertiesPar);
 			boolean webSiteExtracted = false;
+			boolean webSiteNameExtracted = false;
 			String webSite = "";
+			String webSiteName = "";
 			ArrayList<Property> propertyList = new ArrayList<>();
 			for(JsonValue par : websitePropertiesPar) {
 				if(!webSiteExtracted) {
 					webSite = par.asJsonObject().getString("webSite");
 					webSiteExtracted = true;
+				}
+				else if(!webSiteNameExtracted) {
+					webSiteName = par.asJsonObject().getString("webSiteName");
+					webSiteNameExtracted = true;
 				}
 				else {
 					JsonArray arr = par.asJsonArray();
@@ -378,7 +384,7 @@ public class TechnicalScraper {
 								obj.getString("attributeName"), obj.getString("value"));
 						propertyList.add(property);
 					}
-					scrapingPropertiesList.put(webSite,new ScrapingProperties(propertyList));	
+					scrapingPropertiesList.put(webSite,new ScrapingProperties(webSiteName, webSite, propertyList));	
 				}
 			}
 		}

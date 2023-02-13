@@ -47,7 +47,7 @@ public class MessageController {
 		properties.add(new Property("FirstParagraph","","",""));
 		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
 
-		ScrapingProperties sp = new ScrapingProperties(properties);
+		ScrapingProperties sp = new ScrapingProperties("El mundo", webPage, properties);
 
 		this.ts = new TechnicalScraper(webPage, sp);
 		
@@ -58,7 +58,7 @@ public class MessageController {
 		properties.add(new Property("Article","Tag","","article"));
 		properties.add(new Property("FirstParagraph","","",""));
 		properties.add(new Property("Topic","","",""));
-		sp = new ScrapingProperties(properties);
+		sp = new ScrapingProperties("El pais", webPage, properties);
 		scrapingPropertiesList.put(webPage, sp);
 		
 //		webPage =  ("https://www.antena3.com/noticias/");

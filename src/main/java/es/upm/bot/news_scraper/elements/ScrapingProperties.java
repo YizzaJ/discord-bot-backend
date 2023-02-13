@@ -4,18 +4,17 @@ import java.util.ArrayList;
 
 public class ScrapingProperties{
 
+	private String name;
+	private String webSite;
 	private Property article;
 	private Property firstParagraph;
 	private Property topic;
 	private ArrayList<Property> properties;
 
-	public ScrapingProperties(Property article, Property topic) {
-		this.article = article;
-		this.topic = topic;
-	}
-
-	public ScrapingProperties(ArrayList<Property> properties) {
+	public ScrapingProperties(String name, String webSite, ArrayList<Property> properties) {
 		this.properties = properties;
+		this.name = name;
+		this.webSite = webSite;
 		for(Property p : properties) {
 			switch(p.getUse()) {
 			case "Article": 
@@ -48,6 +47,14 @@ public class ScrapingProperties{
 
 	public ArrayList<Property> getProperties() {
 		return properties;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getWebSite() {
+		return webSite;
 	}
 
 

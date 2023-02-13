@@ -48,7 +48,7 @@ public class ReaderJson {
 						obj.getString("attributeName"), obj.getString("value"));
 				propertyList.add(property);
 			}
-			scrapingPropertiesList.add(new ScrapingProperties(propertyList));	
+			scrapingPropertiesList.add(new ScrapingProperties("","",propertyList));	
 		}
 		return scrapingPropertiesList;
 	}
