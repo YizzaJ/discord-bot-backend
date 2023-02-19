@@ -416,6 +416,18 @@ public class TechnicalScraper {
 		return providersToJson(msp);
 	}
 
+	public int getNEWS_LIMIT() {
+		return NEWS_LIMIT;
+	}
+
+	public void setNEWS_LIMIT(int nEWS_LIMIT) {
+		NEWS_LIMIT = nEWS_LIMIT;
+	}
+	
+	
+	
+	
+
 
 
 }

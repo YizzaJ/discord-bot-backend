@@ -122,4 +122,13 @@ public class MessageController {
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 	
+	@PostMapping("max")
+	public ResponseEntity<String> changeMax(@RequestBody String message) throws ArticlesNotFoundException {
+		String newMax = message.replace("[", "");
+		newMax = newMax.replace("]", "");
+
+		ts.setNEWS_LIMIT(Integer.parseInt(message));
+		return new ResponseEntity<>(null, HttpStatus.OK);
+	}
+	
 }
