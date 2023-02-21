@@ -63,52 +63,46 @@ public class MessageController {
 		
 	}
 
-	@GetMapping("{userID}/news")
-	public ResponseEntity<String> getAll(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-		String articles = ts.getArticles(userID);
-		return new ResponseEntity<>(articles, HttpStatus.OK);
-	}
-
-	@GetMapping("/{userID}/newslist")
+	@GetMapping("/{userID}/news-list")
 	public ResponseEntity<String> getAllList(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String articles = ts.getArticles(userID);
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 	
-	@GetMapping("/{userID}/nextnews")
+	@GetMapping("/{userID}/next-news")
 	public ResponseEntity<String> getNextList(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String articles = ts.getNextArticles(userID);
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
-	@PostMapping("add")
+	@PostMapping("add-provider")
 	public void addProvider(@RequestBody String message) {
 		System.err.println(message);
 		ts.addProviders(message);
 	}
 
-	@PostMapping("{userID}/change")
+	@PostMapping("{userID}/change-provider")
 	public void changeProvider(@RequestBody String message, @PathVariable String userID) throws ProviderNotFoundException {
 		String newProvider = message.replace("[", "");
 		newProvider = newProvider.replace("]", "");
 		ts.changeProvider(userID, newProvider);
 	}
 	
-	@GetMapping("{userID}/providerlist")
+	@GetMapping("{userID}/provider-list")
 	public ResponseEntity<String> getProviders(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String providers = ts.getProviders();
 		System.out.println("PROVIDERS " + providers);
 		return new ResponseEntity<>(providers, HttpStatus.OK);
 	}
 
-	@GetMapping("{userID}/topiclist")
+	@GetMapping("{userID}/topic-list")
 	public ResponseEntity<String> getTopicList(@PathVariable String userID) throws ArticlesNotFoundException {
 		String topics = ts.getTopics(userID);
 		System.out.println("TOPICS " + topics);
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 
-	@PostMapping("{userID}/topic")
+	@PostMapping("{userID}/change-topic")
 	public ResponseEntity<String> topic(@RequestBody String message, @PathVariable String userID) throws ArticlesNotFoundException {
 		String topic = message.replace("[", "");
 		topic = topic.replace("]", "");
@@ -117,7 +111,7 @@ public class MessageController {
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 	
-	@PostMapping("maxPrivate")
+	@PostMapping("max-private")
 	public ResponseEntity<String> changeMax(@RequestBody String message) throws ArticlesNotFoundException {
 		String newMax = message.replace("[", "");
 		newMax = newMax.replace("]", "");
