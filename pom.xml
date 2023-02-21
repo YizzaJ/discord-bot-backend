@@ -6,11 +6,11 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.0.2</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-  <groupId>es.upm.bot</groupId>
-  <artifactId>news-scraper</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+	<groupId>es.upm.bot</groupId>
+	<artifactId>news-scraper</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>news-scraper</name>
 	<description>Bot de noticias para discord</description>
@@ -19,16 +19,15 @@
 	</properties>
 	<dependencies>
 		<dependency>
-		  <!-- jsoup HTML parser library @ https://jsoup.org/ -->
-		  <groupId>org.jsoup</groupId>
-		  <artifactId>jsoup</artifactId>
-		  <version>1.15.3</version>
+			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.15.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
@@ -39,25 +38,31 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		  <dependency>
-		    <groupId>com.discord4j</groupId>
-		    <artifactId>discord4j-core</artifactId>
-		    <version>3.2.3</version>
-		  </dependency>
 		<dependency>
-		    <groupId>javax.json</groupId>
-		    <artifactId>javax.json-api</artifactId>
-		    <version>1.1.4</version>
+			<groupId>com.discord4j</groupId>
+			<artifactId>discord4j-core</artifactId>
+			<version>3.2.3</version>
 		</dependency>
-<dependency>
-    <groupId>org.glassfish</groupId>
-    <artifactId>javax.json</artifactId>
-    <version>1.1.4</version>
-</dependency>
-
-	  
+		<dependency>
+			<groupId>javax.json</groupId>
+			<artifactId>javax.json-api</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -66,5 +71,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
