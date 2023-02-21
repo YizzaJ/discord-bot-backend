@@ -34,56 +34,44 @@ import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
 @Service
 public class TechnicalScraper {
 
-	private String webPage;
-
-	private Document doc;
+	private String defaultWebPage;
 	private int NEWS_LIMIT = 5;
-	private ScrapingProperties properties;
 
-	private String articleType;
-	private String firstParagraphType;
-	private String topicType;
+	private Map<String, ScrapingProperties> msp;
+	private Map<String, String> userP;
 
-	private Map<String,ScrapingProperties> msp;
-
-	public TechnicalScraper(String webPage, ScrapingProperties sp) {
+	public TechnicalScraper(String defaultWebPage, ScrapingProperties sp) {
 		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER CON PARAMETROS");
-		this.webPage = webPage;
-		this.doc = generateDoc(webPage);
-		this.properties = sp;
-
-		this.articleType = sp.getArticle().getType();
-		this.firstParagraphType = sp.getFirstParagraph().getType();
-		this.topicType = sp.getTopic().getType();
+		this.defaultWebPage = defaultWebPage;
 		this.msp = new HashMap<>();
-
-		msp.put(webPage, sp);
+		this.userP = new HashMap<>();
+		msp.put(defaultWebPage, sp);
 	}
 
 	public TechnicalScraper() {
-		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER SIN PARAMETROS");
-		this.webPage = "https://www.elpais.com/";
-		this.doc = generateDoc(webPage);
-
-		ArrayList<Property> properties = new ArrayList<>();
-		properties.add(new Property("Article","Tag","","article"));
-		properties.add(new Property("FirstParagraph","","",""));
-		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
-
-		ScrapingProperties sp = new ScrapingProperties("El pais", webPage, properties);
-
-
-		this.properties = sp;
-
-		this.articleType = sp.getArticle().getType();
-		this.firstParagraphType = sp.getFirstParagraph().getType();
-		this.topicType = sp.getTopic().getType();
+		//		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER SIN PARAMETROS");
+		//		this.webPage = "https://www.elpais.com/";
+		//		this.doc = generateDoc(webPage);
+		//
+		//		ArrayList<Property> properties = new ArrayList<>();
+		//		properties.add(new Property("Article","Tag","","article"));
+		//		properties.add(new Property("FirstParagraph","","",""));
+		//		properties.add(new Property("Topic","Class","","ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"));
+		//
+		//		ScrapingProperties sp = new ScrapingProperties("El pais", webPage, properties);
+		//
+		//
+		//		this.properties = sp;
+		//
+		//		this.articleType = sp.getArticle().getType();
+		//		this.firstParagraphType = sp.getFirstParagraph().getType();
+		//		this.topicType = sp.getTopic().getType();
 	}
 
-	private Document generateDoc(String url) {
+	private Document generateDoc(String webPage, String url) {
 		String html = "";
 		try{
-			html = Jsoup.connect(urlCheck(url)).get().html();
+			html = Jsoup.connect(urlCheck(webPage, url)).get().html();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -91,13 +79,13 @@ public class TechnicalScraper {
 		return Jsoup.parse(html);
 	}
 
-	private String urlCheck(String url) {	
+	private String urlCheck(String webPage, String url) {	
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
 			return webPage + url;	
 		return url;
 	}
 
-	public void changeProvider(String provider) throws ProviderNotFoundException {
+	public void changeProvider(String userID, String provider) throws ProviderNotFoundException {
 
 		System.out.println("Intento cambiar al proveedor " + provider);
 		System.out.println("Existen los siguientes : \n" + msp.keySet().toString());
@@ -106,21 +94,32 @@ public class TechnicalScraper {
 		if(sp == null)
 			throw new ProviderNotFoundException();
 
-
-		webPage = provider;
-		doc = generateDoc(webPage);
-
-		this.properties = sp;
-
-		this.articleType = sp.getArticle().getType();
-		this.firstParagraphType = sp.getFirstParagraph().getType();
-		this.topicType = sp.getTopic().getType();
-
-
+		userP.put(userID, provider);
 	}
 
 
-	public String getArticles() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	public String getArticles(String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+
+
+		String webPage = userP.get(userID);
+		Document doc;
+
+		if(webPage != null) {
+			doc = generateDoc(webPage, webPage);
+		}
+		else {
+			doc = generateDoc(defaultWebPage, defaultWebPage);
+			webPage = defaultWebPage;
+		}
+		
+		ScrapingProperties properties = msp.get(webPage);
+
+		
+		String articleType = msp.get(webPage).getArticle().getType();
+		System.out.println("articleType " + articleType);
+		String firstParagraphType= msp.get(webPage).getFirstParagraph().getType();
+
+
 		ArrayList<Article> articleList = new ArrayList<>();
 		Elements articles = null;
 		System.out.println("ARTICLE TYPE FROM GET ARTICLES " + articleType);
@@ -154,7 +153,7 @@ public class TechnicalScraper {
 				break;
 			Article a;
 			try {
-				a = getArticleFromElement(e);
+				a = getArticleFromElement(e, webPage, firstParagraphType, doc);
 			} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
 				i--;
 				continue;
@@ -165,8 +164,9 @@ public class TechnicalScraper {
 		return articlesToJson(articleList);
 	}
 
-	private String getFirstParagraph(String articleLink) throws FirstParagraphNotFoundException {	
+	private String getFirstParagraph(String articleLink, String webPage, String firstParagraphType, Document doc) throws FirstParagraphNotFoundException {	
 		Elements parrafos = null;
+		ScrapingProperties properties = msp.get(webPage);
 		System.out.println("PARAGRAPTH TYPE FROM getFirstParagraph " + firstParagraphType + " LINK " + articleLink);
 		switch(firstParagraphType) {
 		case "Tag":{
@@ -176,7 +176,7 @@ public class TechnicalScraper {
 		}
 
 		case "Class":{
-			parrafos = generateDoc(articleLink).getElementsByClass(properties.getFirstParagraph().getValue());
+			parrafos = generateDoc(webPage, articleLink).getElementsByClass(properties.getFirstParagraph().getValue());
 			break;
 		}
 
@@ -187,18 +187,32 @@ public class TechnicalScraper {
 		}
 
 		default:{
-			parrafos = generateDoc(articleLink).select("article p");
+			parrafos = generateDoc(webPage, articleLink).select("article p");
 
 		}
 		}
-		
+
 		if(parrafos.size() == 0)
 			throw new FirstParagraphNotFoundException();
 		return parrafos.first().text();
 	}
 
-	public String getTopics() {
+	public String getTopics(String userID) {
 		ArrayList<Topic> topicList = new ArrayList<>();
+
+		String webPage = userP.get(userID);
+		Document doc;
+
+		if(webPage != null) {
+			doc = generateDoc(webPage, webPage);
+		}
+		else {
+			doc = generateDoc(defaultWebPage, defaultWebPage);
+			webPage = defaultWebPage;
+		}
+		ScrapingProperties properties = msp.get(webPage);
+		String topicType= msp.get(webPage).getTopic().getType();
+
 
 		Elements topics = null;
 
@@ -234,9 +248,27 @@ public class TechnicalScraper {
 		return topicsToJson(topicList);
 	}
 
-	public String getArticlesFromTopic(String link) throws ArticlesNotFoundException{
+	public String getArticlesFromTopic(String userID, String link) throws ArticlesNotFoundException{
+
+		String webPage = userP.get(userID);
+		Document doc;
+
+		if(webPage != null) {
+			doc = generateDoc(webPage, webPage);
+		}
+		else {
+			doc = generateDoc(defaultWebPage, defaultWebPage);
+			webPage = defaultWebPage;
+		}
+
+
+		String articleType = msp.get(webPage).getArticle().getType();
+		String firstParagraphType= msp.get(webPage).getFirstParagraph().getType();
+		String topicType= msp.get(webPage).getTopic().getType();
+
 		ArrayList<Article> articleList = new ArrayList<>();
-		Elements articles = generateDoc(link).getElementsByTag("article");
+
+		Elements articles = generateDoc(webPage, link).getElementsByTag("article");
 		if(articles.size() == 0)
 			throw new ArticlesNotFoundException();
 		int i = 0;
@@ -245,7 +277,7 @@ public class TechnicalScraper {
 				break;
 			Article a;
 			try {
-				a = getArticleFromElement(e);
+				a = getArticleFromElement(e, webPage, firstParagraphType, doc);
 			} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
 				i--;
 				continue;
@@ -258,37 +290,37 @@ public class TechnicalScraper {
 
 
 
-	private Article getArticleFromElement(Element e) throws ImageNotFoundException, FirstParagraphNotFoundException {
+	private Article getArticleFromElement(Element e, String webPage, String firstParagraphType, Document doc) throws ImageNotFoundException, FirstParagraphNotFoundException {
 		String title = e.getElementsByTag("header").text();
 
 		Element article = e.getElementsByAttribute("href").first();
 		if(article == null)
 			return null;
-		String link = urlCheck(article.attr("href"));
+		String link = urlCheck(webPage, article.attr("href"));
 		String clase = e.className();
-		String content = getFirstParagraph(link);
-		String image = urlCheck(searchImage(link));
-		String favicon = urlCheck(searchFavicon(link));
+		String content = getFirstParagraph(link, webPage, firstParagraphType, doc);
+		String image = urlCheck(webPage, searchImage(link, webPage));
+		String favicon = urlCheck(webPage, searchFavicon(link, webPage));
 		return new Article(title, link, clase, content, image, favicon);
 	}
 
 
-	private String searchImage(String articleLink) throws ImageNotFoundException {
+	private String searchImage(String articleLink, String webPage) throws ImageNotFoundException {
 		String image = "";
 		try {
-		Elements articles = generateDoc(articleLink).getElementsByTag("article").first().getElementsByTag("img");
-		image = articles.first().attr("src");
+			Elements articles = generateDoc(webPage, articleLink).getElementsByTag("article").first().getElementsByTag("img");
+			image = articles.first().attr("src");
 		}
 		catch(NullPointerException e) {
 			image = "";
 			throw new ImageNotFoundException();		
 		}
-		
+
 		return image;
 	}
 
-	private String searchFavicon(String articleLink) {
-		return "https://www.google.com/s2/favicons?domain="+ webPage+"&sz=128";
+	private String searchFavicon(String articleLink, String webPage) {
+		return "https://www.google.com/s2/favicons?domain="+ webPage +"&sz=128";
 	}
 
 	private String articlesToJson(ArrayList<Article> articles) {
@@ -332,7 +364,7 @@ public class TechnicalScraper {
 		return os.toString();
 
 	}
-	
+
 	private String providersToJson(Map<String, ScrapingProperties> providers) {
 		OutputStream os = new ByteArrayOutputStream(5000);
 		JsonGeneratorFactory factory = Json.createGeneratorFactory(null);
@@ -351,7 +383,7 @@ public class TechnicalScraper {
 		return os.toString();
 
 	}
-	
+
 	public Map<String, ScrapingProperties> providersFromJson(String body){	
 		StringReader sr = new StringReader(body);
 		JsonReader reader = Json.createReader(sr);
@@ -377,7 +409,7 @@ public class TechnicalScraper {
 				}
 				else {
 					JsonArray arr = par.asJsonArray();
-					
+
 					for(JsonValue jo2 : arr) {
 						JsonObject obj = jo2.asJsonObject();	
 						Property property = new Property(obj.getString("use"), obj.getString("type"),
@@ -392,9 +424,6 @@ public class TechnicalScraper {
 		return scrapingPropertiesList;
 	}
 
-	public String getWebPage() {
-		return webPage;
-	}
 
 	public Map<String, ScrapingProperties> getMsp() {
 		return msp;
@@ -403,7 +432,7 @@ public class TechnicalScraper {
 	public void addScrapingProperty(String webPage, ScrapingProperties sp) {
 		msp.put(webPage, sp);
 	}
-	
+
 	public void addProviders(Map<String, ScrapingProperties> providers) {
 		msp.putAll(providers);
 	}
@@ -423,10 +452,10 @@ public class TechnicalScraper {
 	public void setNEWS_LIMIT(int nEWS_LIMIT) {
 		NEWS_LIMIT = nEWS_LIMIT;
 	}
-	
-	
-	
-	
+
+
+
+
 
 
 

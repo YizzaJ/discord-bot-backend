@@ -16,8 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.upm.bot.news_scraper.elements.Property;
@@ -73,15 +75,15 @@ public class MessageController {
 		
 	}
 
-	@GetMapping("news")
-	public ResponseEntity<String> getAll() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-		String articles = ts.getArticles();
+	@GetMapping("{userID}/news")
+	public ResponseEntity<String> getAll(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+		String articles = ts.getArticles(userID);
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
-	@GetMapping("newslist")
-	public ResponseEntity<String> getAllList() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-		String articles = ts.getArticles();
+	@GetMapping("/{userID}/newslist")
+	public ResponseEntity<String> getAllList(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+		String articles = ts.getArticles(userID);
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
@@ -91,33 +93,33 @@ public class MessageController {
 		ts.addProviders(message);
 	}
 
-	@PostMapping("change")
-	public void changeProvider(@RequestBody String message) throws ProviderNotFoundException {
+	@PostMapping("{userID}/change")
+	public void changeProvider(@RequestBody String message, @PathVariable String userID) throws ProviderNotFoundException {
 		String newProvider = message.replace("[", "");
 		newProvider = newProvider.replace("]", "");
-		ts.changeProvider(newProvider);
+		ts.changeProvider(userID, newProvider);
 	}
 	
-	@GetMapping("providerlist")
-	public ResponseEntity<String> getProviders() throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	@GetMapping("{userID}/providerlist")
+	public ResponseEntity<String> getProviders(@PathVariable String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
 		String providers = ts.getProviders();
 		System.out.println("PROVIDERS " + providers);
 		return new ResponseEntity<>(providers, HttpStatus.OK);
 	}
 
-	@GetMapping("topiclist")
-	public ResponseEntity<String> getTopicList() throws ArticlesNotFoundException {
-		String topics = ts.getTopics();
+	@GetMapping("{userID}/topiclist")
+	public ResponseEntity<String> getTopicList(@PathVariable String userID) throws ArticlesNotFoundException {
+		String topics = ts.getTopics(userID);
 		System.out.println("TOPICS " + topics);
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 
-	@PostMapping("topic")
-	public ResponseEntity<String> topic(@RequestBody String message) throws ArticlesNotFoundException {
+	@PostMapping("{userID}/topic")
+	public ResponseEntity<String> topic(@RequestBody String message, @PathVariable String userID) throws ArticlesNotFoundException {
 		String topic = message.replace("[", "");
 		topic = topic.replace("]", "");
 
-		String topics = ts.getArticlesFromTopic(topic);
+		String topics = ts.getArticlesFromTopic(userID, topic);
 		System.err.println("TOPICSARTICLES " + topics);
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
