@@ -73,6 +73,7 @@ public class TechnicalScraper {
 	}
 
 	public void changeProvider(String userID, String provider) throws ProviderNotFoundException {
+
 		ScrapingProperties sp = msp.get(provider);
 
 		if(sp == null)

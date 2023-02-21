@@ -31,7 +31,6 @@ public class MessageController {
 	private TechnicalScraper ts;
 
 	public MessageController() {
-		System.err.println("LLAMADA CONSTRUCTOR MESSAGECONTROLLER CON PARAMETROS");
 		String webPage =  ("https://www.elmundo.es/");
 		ArrayList<Property> properties = new ArrayList<>();
 		properties.add(new Property("Article","Tag","","article"));
