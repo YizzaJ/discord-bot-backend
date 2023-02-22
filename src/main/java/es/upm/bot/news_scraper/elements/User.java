@@ -42,6 +42,10 @@ public class User {
 		return userNews.poll();
 	}
 	
+	public void clearUserNews() {
+		userNews.clear();
+	}
+	
 	
 	
 	

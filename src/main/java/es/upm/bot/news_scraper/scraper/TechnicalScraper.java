@@ -50,7 +50,6 @@ public class TechnicalScraper {
 
 	private Map<String, User> userList;
 	public TechnicalScraper(String defaultWebPage, ScrapingProperties sp) {
-		System.err.println("LLAMADA CONSTRUCTOR TECHNICALSCRAPER CON PARAMETROS");
 		this.defaultWebPage = defaultWebPage;
 		this.msp = new HashMap<>();
 		this.userP = new HashMap<>();
@@ -91,21 +90,22 @@ public class TechnicalScraper {
 
 
 	public String getArticles(String userID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-		
+
 		String webPage = "";
 		Document doc;
 
 		if(userList.containsKey(userID)) {
 			webPage = userList.get(userID).getProvider();
 			doc = generateDoc(webPage, webPage);
+			userList.get(userID).clearUserNews();
 		}
 		else {
 			doc = generateDoc(defaultWebPage, defaultWebPage);
 			webPage = defaultWebPage;
 			userList.put(userID, new User(userID, defaultWebPage ));
 		}
-		
-		
+
+
 		final String webPageFinal = webPage;
 		ScrapingProperties properties = msp.get(webPage);
 
@@ -144,22 +144,21 @@ public class TechnicalScraper {
 
 		final Elements articlesFinal = articles;
 		new Thread(() -> {
-			System.out.println("ENTRO EN THREAD ARTICLE FINAL " + articlesFinal.size());
 			int i = 0;
 			for(Element e : articlesFinal) {
 				if(i++ >= NEWS_LIMIT_PRIV) {
-					System.out.println("LLEGO A NEWS_LIMIT_PRIV");
 					latch.countDown();
 				}
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPageFinal, firstParagraphType, doc);
-					System.out.println("Proceso " + a.toString());
 				} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
 					i--;
 					continue;
 				}
-				userList.get(userID).addUserNews(a);
+				if(a != null) {
+					userList.get(userID).addUserNews(a);
+				}
 			}
 		}).start();;
 
@@ -169,7 +168,7 @@ public class TechnicalScraper {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 
 		return getNextArticles(userID);
 	}
@@ -177,7 +176,11 @@ public class TechnicalScraper {
 	public String getNextArticles(String userID) {
 		Queue<Article> articles = new LinkedList<>();
 		for(int i = 0 ; i < NEWS_LIMIT_PRIV; i ++) {
+			if(userList.get(userID).getUserNews().isEmpty()) {
+				break;
+			}
 			articles.add(userList.get(userID).pollUserNews());
+			
 		}
 		String res = articlesToJson(articles);
 		System.out.println("LES ENVIO LOS PRIMEROS " + res);
@@ -268,23 +271,23 @@ public class TechnicalScraper {
 	}
 
 	public String getArticlesFromTopic(String userID, String link) throws ArticlesNotFoundException{
-		userNews.put(userID, new PriorityQueue<>());
-		String webPage = userP.get(userID);
-		Document doc;
 
-		if(webPage != null) {
-			doc = generateDoc(webPage, webPage);
-		}
-		else {
-			doc = generateDoc(defaultWebPage, defaultWebPage);
-			webPage = defaultWebPage;
-		}
-		final String webPageFinal = webPage;
-		String firstParagraphType= msp.get(webPage).getFirstParagraph().getType();
+		final String webPage = link;
+		Document doc = generateDoc(webPage, webPage);
 
-		Elements articles = generateDoc(webPage, link).getElementsByTag("article");
+		if(!userList.containsKey(userID)) {
+			userList.put(userID, new User(userID, defaultWebPage ));
+		}
+		else{
+			userList.get(userID).clearUserNews();
+		}
+
+		String firstParagraphType= "";
+
+		Elements articles = doc.getElementsByTag("article");
 		if(articles.size() == 0)
 			throw new ArticlesNotFoundException();
+
 		CountDownLatch latch = new CountDownLatch(1);
 
 		final Elements articlesFinal = articles;
@@ -293,18 +296,19 @@ public class TechnicalScraper {
 			for(Element e : articlesFinal) {
 				if(i++ >= NEWS_LIMIT_PRIV) {
 					latch.countDown();
-					break;
 				}
 				Article a;
 				try {
-					a = getArticleFromElement(e, webPageFinal, firstParagraphType, doc);
+					a = getArticleFromElement(e, webPage, firstParagraphType, doc);
 				} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
 					i--;
 					continue;
 				}
-				userNews.get(userID).add(a);
+				if(a != null) {
+					userList.get(userID).addUserNews(a);
+				}
 			}
-		});
+		}).start();;
 
 
 		try {
@@ -313,8 +317,8 @@ public class TechnicalScraper {
 			e.printStackTrace();
 		}
 
-		return articlesToJson(userNews.get(userID));
 
+		return getNextArticles(userID);
 	}
 
 
