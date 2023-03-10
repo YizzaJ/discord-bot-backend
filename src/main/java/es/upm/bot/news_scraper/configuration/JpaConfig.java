@@ -12,6 +12,7 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -20,6 +21,7 @@ import jakarta.persistence.EntityManagerFactory;
 @Configuration
 @EnableJpaRepositories(basePackages = "es.upm.bot.news_scraper.repositories")
 @EntityScan(basePackages = "es.upm.bot.news_scraper.entitites")
+@EnableTransactionManagement
 public class JpaConfig {
 
 	@Bean
@@ -51,6 +53,8 @@ public class JpaConfig {
         transactionManager.setEntityManagerFactory(emf);
         return transactionManager;
     }
+    
+    
 
 
 

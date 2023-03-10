@@ -13,4 +13,6 @@ public interface ProviderRepository extends JpaRepository<Provider, String>{
     Optional<Provider> findByNombreAndServerID(String nombre, Long serverID);
     
     Optional<List<Provider>> findByServerID(Long serverID);
+
+	void deleteByServerIDAndNombre(Long serverID, String nombre);
 }

@@ -53,10 +53,21 @@ public class MessageController {
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
-	@PostMapping("add-provider")
-	public void addProvider(@RequestBody String message) {
+	@PostMapping("add-provider/{serverID}")
+	public void addProvider(@PathVariable Long serverID, @RequestBody String message) {
 		System.err.println(message);
-		ts.providersFromJson(message);
+		ts.providersFromJson(message, serverID);
+	}
+	
+	@PostMapping("modify-provider/{serverID}")
+	public void modifyProvider(@PathVariable Long serverID, @RequestBody String message) {
+		System.err.println(message);
+		ts.providersFromJson(message, serverID);
+	}
+	
+	@PostMapping("remove-provider/{serverID}/{provider}")
+	public void removeProvider(@PathVariable Long serverID, @PathVariable String provider) {
+		ts.removeProvider(serverID, provider);
 	}
 
 	@PostMapping("{serverID}/{username}/change-provider")
@@ -64,6 +75,14 @@ public class MessageController {
 		String newProvider = message.replace("[", "");
 		newProvider = newProvider.replace("]", "");
 		ts.changeProvider(username, serverID, newProvider);
+	}
+	
+	@GetMapping("{serverID}/providers")
+	public ResponseEntity<String> getProvidersWs(@PathVariable Long serverID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+		System.err.println("Recibo get SERVERID "  + serverID);
+		System.err.println("DOY PROVIDERS "  + ts.getProvidersWs(serverID));
+		
+		return new ResponseEntity<>(ts.getProvidersWs(serverID), HttpStatus.OK);
 	}
 
 	@GetMapping("{serverID}/{username}/provider-list")

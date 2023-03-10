@@ -1,5 +1,9 @@
 package es.upm.bot.news_scraper.entity;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -202,13 +206,35 @@ public class Provider {
 
 	@Override
 	public String toString() {
-		return "Provider [link=" + link + ", nombre=" + nombre + ", serverID=" + serverID + ", usoArticulo="
+		return "link=" + link + ", nombre=" + nombre + ", serverID=" + serverID + ", usoArticulo="
 				+ usoArticulo + ", tipoArticulo=" + tipoArticulo + ", attributeNameArticulo=" + attributeNameArticulo
 				+ ", valorArticulo=" + valorArticulo + ", usoParrafo=" + usoParrafo + ", tipoParrafo=" + tipoParrafo
 				+ ", attributeNameParrafo=" + attributeNameParrafo + ", valorParrafo=" + valorParrafo + ", usoTopic="
 				+ usoTopic + ", tipoTopic=" + tipoTopic + ", attributeNameTopic=" + attributeNameTopic + ", valorTopic="
-				+ valorTopic + "]";
+				+ valorTopic;
 	}
+	
+    public String toJson() {
+	
+        JsonObjectBuilder builder = Json.createObjectBuilder()
+                .add("webSite", this.link)
+                .add("webSiteName", this.nombre)
+                .add("serverID", this.serverID)
+                .add("usoArticulo", this.usoArticulo)
+                .add("tipoArticulo", this.tipoArticulo)
+                .add("attributeNameArticulo", this.attributeNameArticulo)
+                .add("valorArticulo", this.valorArticulo)
+                .add("usoParrafo", this.usoParrafo)
+                .add("tipoParrafo", this.tipoParrafo)
+                .add("attributeNameParrafo", this.attributeNameParrafo)
+                .add("valorParrafo", this.valorParrafo)
+                .add("usoTopic", this.usoTopic)
+                .add("tipoTopic", this.tipoTopic)
+                .add("attributeNameTopic", this.attributeNameTopic)
+                .add("valorTopic", this.valorTopic);
+        JsonObject jsonObj = builder.build();
+        return jsonObj.toString();
+    }
 	
 	
 

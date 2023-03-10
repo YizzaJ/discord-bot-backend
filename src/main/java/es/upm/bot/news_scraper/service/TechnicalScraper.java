@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -25,6 +26,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import es.upm.bot.news_scraper.elements.Article;
@@ -460,20 +462,18 @@ public class TechnicalScraper {
 	//
 	//	}
 
-	public void providersFromJson(String body){	
+	public void providersFromJson(String body, Long serverID){	
 		StringReader sr = new StringReader(body);
 		JsonReader reader = Json.createReader(sr);
-		JsonArray array = reader.readArray();
+		JsonObject obj = reader.readObject();
 
-		for(JsonValue jo : array) {
-			JsonObject obj = jo.asJsonObject();
-
-			new Provider(obj.getString("webSite"), obj.getString("webSiteName"), 1111111111111L, 
+		 Provider provider = new Provider(obj.getString("webSite"), obj.getString("webSiteName"), serverID, 
 					obj.getString("usoArticulo"), obj.getString("tipoArticulo"), obj.getString("attributeNameArticulo"), obj.getString("valorArticulo"), 
 					obj.getString("usoParrafo"), obj.getString("tipoParrafo"), obj.getString("attributeNameParrafo"), obj.getString("valorParrafo"), 
 					obj.getString("usoTopic"), obj.getString("tipoTopic"), obj.getString("attributeNameTopic"), obj.getString("valorTopic")); 
 
-		}
+	
+		providerRepository.save(provider);
 
 	}
 
@@ -518,6 +518,25 @@ public class TechnicalScraper {
 			serverRepository.save(new Server(serverID, serverName));
 		}
 		System.out.println("Estamos en server " + serverID + " " + serverName);
+	}
+	
+	public String getProvidersWs(Long serverID) {
+	    List<Provider> providers = providerRepository.findByServerID(serverID).get();
+	    StringBuilder sb = new StringBuilder("[");
+	    for (Provider prov : providers) {
+	        sb.append(prov.toJson()).append(",");
+	    }
+	    if (providers.size() > 0) {
+	        sb.setLength(sb.length() - 1);
+	    }
+	    sb.append("]");
+	    return sb.toString();
+	}
+	
+	@Transactional
+	public void removeProvider(Long serverID, String provider) {
+		providerRepository.deleteByServerIDAndNombre(serverID, provider);
+		
 	}
 
 
