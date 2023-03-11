@@ -16,4 +16,6 @@ public interface ProviderRepository extends JpaRepository<Provider, ProviderId>{
     Optional<List<Provider>> findByProviderId_ServerID(Long serverID);
 
 	void deleteByProviderId_ServerIDAndProviderId_Link(Long serverID, String link);
+
+	void deleteByProviderId_ServerIDAndNombre(Long serverID, String provider);
 }

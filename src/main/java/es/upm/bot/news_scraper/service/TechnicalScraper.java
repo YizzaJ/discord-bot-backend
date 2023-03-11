@@ -554,7 +554,7 @@ public class TechnicalScraper {
 
 	@Transactional
 	public void removeProvider(Long serverID, String provider) {
-		providerRepository.deleteByProviderId_ServerIDAndProviderId_Link(serverID, provider);
+		providerRepository.deleteByProviderId_ServerIDAndNombre(serverID, provider);
 
 	}
 
