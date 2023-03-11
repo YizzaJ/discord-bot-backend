@@ -1,3 +1,4 @@
+package es.upm.bot.news_scraper.not.used;
 //package es.upm.bot.news_scraper.scraper;
 //
 //
