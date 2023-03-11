@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,10 +18,8 @@ import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import javax.json.JsonValue;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 
@@ -26,18 +28,21 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.upm.bot.news_scraper.elements.Article;
 import es.upm.bot.news_scraper.elements.Topic;
 import es.upm.bot.news_scraper.entity.Provider;
+import es.upm.bot.news_scraper.entity.ProviderId;
 import es.upm.bot.news_scraper.entity.Server;
 import es.upm.bot.news_scraper.entity.User;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
 import es.upm.bot.news_scraper.exceptions.FirstParagraphNotFoundException;
 import es.upm.bot.news_scraper.exceptions.ImageNotFoundException;
 import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
+import es.upm.bot.news_scraper.exceptions.TopicsNotFoundException;
+import es.upm.bot.news_scraper.exceptions.UrlNotAccessibleException;
 import es.upm.bot.news_scraper.repositories.ProviderRepository;
 import es.upm.bot.news_scraper.repositories.ServerRepository;
 import es.upm.bot.news_scraper.repositories.UserRepository;
@@ -45,7 +50,6 @@ import es.upm.bot.news_scraper.repositories.UserRepository;
 @Service
 public class TechnicalScraper {
 
-	private String defaultWebPage;
 	private int NEWS_LIMIT_COMPLETA = 50;
 	private int NEWS_LIMIT_PRIV = 5;
 
@@ -64,7 +68,7 @@ public class TechnicalScraper {
 		userNews = new HashMap<>();
 	}
 
-	private Document generateDoc(String webPage, String url) {
+	private Document generateDoc(String webPage, String url) throws UrlNotAccessibleException {
 		String html = "";
 		try{
 			html = Jsoup.connect(urlCheck(webPage, url)).get().html();
@@ -75,17 +79,35 @@ public class TechnicalScraper {
 		return Jsoup.parse(html);
 	}
 
-	private String urlCheck(String webPage, String url) {	
+	private String urlCheck(String webPage, String url) throws UrlNotAccessibleException {	
+		String finalUrl = url;
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
-			return webPage + url;	
-		return url;
+			finalUrl =  webPage + url;	
+
+		isUrlAccessible(finalUrl);
+
+
+		return finalUrl;
 	}
 
+	public static boolean isUrlAccessible(String url) throws UrlNotAccessibleException {
+		HttpClient httpClient = HttpClient.newHttpClient();
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+		HttpResponse<String> response = null;
+		try {
+			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+		} catch (IOException | InterruptedException e) {
+
+			throw new UrlNotAccessibleException();
+		}
+		return response.statusCode() < 400;
+
+	}
 	public void changeProvider(String username, Long serverID, String provider) throws ProviderNotFoundException{
 
 		User user = searchUser(username, serverID);
 		System.err.println("Cambio provedor de " + username + "de " + user.getProvider() + " a " + provider);
-		Optional<Provider> prov = providerRepository.findById(provider);
+		Optional<Provider> prov = providerRepository.findById(new ProviderId(serverID, provider));
 		if (prov.isPresent()) {
 			user.setProvider(provider);
 			System.err.println("Nuevo provedor de " + username + " es " + user.getProvider());
@@ -97,23 +119,17 @@ public class TechnicalScraper {
 	}
 
 
-	public String getArticles(String username, Long serverID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-
-		Document doc;
-
+	public String getArticles(String username, Long serverID) throws ArticlesNotFoundException, UrlNotAccessibleException {
 		User user = searchUser(username, serverID);
 
-
 		final String webPage = user.getProvider();
-		doc = generateDoc(webPage, webPage);
 
+		Document doc = generateDoc(webPage, webPage);
 
-		Provider provider = providerRepository.findById(webPage).get();
-
+		Provider provider = providerRepository.findById(new ProviderId(serverID, webPage)).get();
 
 		String articleType = provider.getTipoArticulo();
 		System.out.println("articleType " + articleType);
-		String firstParagraphType = provider.getTipoParrafo();
 
 		Elements articles = null;
 		switch(articleType) {
@@ -153,7 +169,7 @@ public class TechnicalScraper {
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPage, provider, doc);
-				} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
+				} catch (ImageNotFoundException | FirstParagraphNotFoundException | UrlNotAccessibleException e1) {
 					i--;
 					continue;
 				}
@@ -162,7 +178,6 @@ public class TechnicalScraper {
 				}
 			}
 		}).start();;
-
 
 		try {
 			latch.await();
@@ -188,7 +203,7 @@ public class TechnicalScraper {
 		return res;
 	}
 
-	private String getFirstParagraph(String articleLink, Provider provider, Document doc) throws FirstParagraphNotFoundException {	
+	private String getFirstParagraph(String articleLink, Provider provider, Document doc) throws FirstParagraphNotFoundException, UrlNotAccessibleException {	
 		Elements parrafos = null;
 
 		switch(provider.getTipoParrafo()) {
@@ -199,7 +214,7 @@ public class TechnicalScraper {
 		}
 
 		case "Class":{
-			parrafos = generateDoc(provider.getLink(), articleLink).getElementsByClass(provider.getValorParrafo());
+			parrafos = generateDoc(provider.getProviderId().getLink(), articleLink).getElementsByClass(provider.getValorParrafo());
 			break;
 		}
 
@@ -210,7 +225,7 @@ public class TechnicalScraper {
 		}
 
 		default:{
-			parrafos = generateDoc(provider.getLink(), articleLink).select("article p");
+			parrafos = generateDoc(provider.getProviderId().getLink(), articleLink).select("article p");
 
 		}
 		}
@@ -220,14 +235,14 @@ public class TechnicalScraper {
 		return parrafos.first().text();
 	}
 
-	public String getTopics(String username, Long serverID) {
+	public String getTopics(String username, Long serverID) throws UrlNotAccessibleException {
 		ArrayList<Topic> topicList = new ArrayList<>();
 
 		User user = searchUser(username, serverID);
 		String webPage = user.getProvider();
 		Document doc = generateDoc(webPage, webPage);
 
-		Provider provider = providerRepository.findById(webPage).get();
+		Provider provider = providerRepository.findById(new ProviderId(serverID, webPage)).get();
 		String topicType= provider.getTipoTopic();
 
 
@@ -265,7 +280,7 @@ public class TechnicalScraper {
 		return topicsToJson(topicList);
 	}
 
-	public String getArticlesFromTopic(String username, Long serverID, String topicLink) throws ArticlesNotFoundException{
+	public String getArticlesFromTopic(String username, Long serverID, String topicLink) throws ArticlesNotFoundException, UrlNotAccessibleException{
 
 		final String webPage = topicLink;
 		Document doc = generateDoc(webPage, webPage);
@@ -274,7 +289,7 @@ public class TechnicalScraper {
 		userNews.get(username).clear();
 
 
-		Provider provider = providerRepository.findById(user.getProvider()).get();
+		Provider provider = providerRepository.findById(new ProviderId(serverID, user.getProvider())).get();
 
 
 		Elements articles = doc.getElementsByTag("article");
@@ -293,10 +308,10 @@ public class TechnicalScraper {
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPage, provider, doc);
-				} catch (ImageNotFoundException | FirstParagraphNotFoundException e1) {
+				} catch (ImageNotFoundException | FirstParagraphNotFoundException | UrlNotAccessibleException e1) {
 					i--;
 					continue;
-				}
+				} 
 				if(a != null) {
 					userNews.get(username).add(a);
 				}
@@ -316,7 +331,7 @@ public class TechnicalScraper {
 
 
 
-	private Article getArticleFromElement(Element e, String webPage, Provider provider, Document doc) throws ImageNotFoundException, FirstParagraphNotFoundException {
+	private Article getArticleFromElement(Element e, String webPage, Provider provider, Document doc) throws ImageNotFoundException, FirstParagraphNotFoundException, UrlNotAccessibleException {
 		String title = e.getElementsByTag("header").text();
 
 		Element article = e.getElementsByAttribute("href").first();
@@ -331,7 +346,7 @@ public class TechnicalScraper {
 	}
 
 
-	private String searchImage(String articleLink, String webPage) throws ImageNotFoundException {
+	private String searchImage(String articleLink, String webPage) throws ImageNotFoundException, UrlNotAccessibleException {
 		String image = "";
 		try {
 			Elements articles = generateDoc(webPage, articleLink).getElementsByTag("article").first().getElementsByTag("img");
@@ -411,10 +426,10 @@ public class TechnicalScraper {
 		JsonGeneratorFactory factory = Json.createGeneratorFactory(null);
 		JsonGenerator generator = factory.createGenerator(os);
 		generator.writeStartArray();
-		for(Provider provider : providerRepository.findByServerID(serverID).get()) {	
+		for(Provider provider : providerRepository.findByProviderId_ServerID(serverID).get()) {	
 			generator
 			.writeStartObject()
-			.write("webSite", provider.getLink())
+			.write("webSite", provider.getProviderId().getLink())
 			.write("name", provider.getNombre())
 			.writeEnd();
 		}
@@ -462,19 +477,23 @@ public class TechnicalScraper {
 	//
 	//	}
 
-	public void providersFromJson(String body, Long serverID){	
+	public Provider providersFromJson(String body, Long serverID){	
 		StringReader sr = new StringReader(body);
 		JsonReader reader = Json.createReader(sr);
 		JsonObject obj = reader.readObject();
 
-		 Provider provider = new Provider(obj.getString("webSite"), obj.getString("webSiteName"), serverID, 
-					obj.getString("usoArticulo"), obj.getString("tipoArticulo"), obj.getString("attributeNameArticulo"), obj.getString("valorArticulo"), 
-					obj.getString("usoParrafo"), obj.getString("tipoParrafo"), obj.getString("attributeNameParrafo"), obj.getString("valorParrafo"), 
-					obj.getString("usoTopic"), obj.getString("tipoTopic"), obj.getString("attributeNameTopic"), obj.getString("valorTopic")); 
+		Provider provider = new Provider(obj.getString("webSite"), obj.getString("webSiteName"), serverID, 
+				obj.getString("usoArticulo"), obj.getString("tipoArticulo"), obj.getString("attributeNameArticulo"), obj.getString("valorArticulo"), 
+				obj.getString("usoParrafo"), obj.getString("tipoParrafo"), obj.getString("attributeNameParrafo"), obj.getString("valorParrafo"), 
+				obj.getString("usoTopic"), obj.getString("tipoTopic"), obj.getString("attributeNameTopic"), obj.getString("valorTopic")); 
 
-	
-		providerRepository.save(provider);
 
+		return provider;
+
+	}
+
+	public void addProvider(String body, Long serverID) {
+		providerRepository.save(providersFromJson(body, serverID));
 	}
 
 
@@ -519,24 +538,124 @@ public class TechnicalScraper {
 		}
 		System.out.println("Estamos en server " + serverID + " " + serverName);
 	}
-	
+
 	public String getProvidersWs(Long serverID) {
-	    List<Provider> providers = providerRepository.findByServerID(serverID).get();
-	    StringBuilder sb = new StringBuilder("[");
-	    for (Provider prov : providers) {
-	        sb.append(prov.toJson()).append(",");
-	    }
-	    if (providers.size() > 0) {
-	        sb.setLength(sb.length() - 1);
-	    }
-	    sb.append("]");
-	    return sb.toString();
+		List<Provider> providers = providerRepository.findByProviderId_ServerID(serverID).get();
+		StringBuilder sb = new StringBuilder("[");
+		for (Provider prov : providers) {
+			sb.append(prov.toJson()).append(",");
+		}
+		if (providers.size() > 0) {
+			sb.setLength(sb.length() - 1);
+		}
+		sb.append("]");
+		return sb.toString();
 	}
-	
+
 	@Transactional
 	public void removeProvider(Long serverID, String provider) {
-		providerRepository.deleteByServerIDAndNombre(serverID, provider);
+		providerRepository.deleteByProviderId_ServerIDAndProviderId_Link(serverID, provider);
+
+	}
+
+	public void checkNewProvider(String body, Long serverID) throws  ArticlesNotFoundException, TopicsNotFoundException, UrlNotAccessibleException, FirstParagraphNotFoundException {
+
+
+		Provider provider = providersFromJson(body, serverID);
+		String webPage = provider.getProviderId().getLink();
+		Document doc;
+		try {
+			doc = generateDoc(webPage, webPage);
+		} catch (UrlNotAccessibleException e2) {
+			throw new UrlNotAccessibleException("link");
+		}
+
+		String articleType = provider.getTipoArticulo();
+
+		Elements articles = null;
+		switch(articleType) {
+		case "Tag":{
+			articles = doc.getElementsByTag(provider.getValorArticulo());
+			break;
+		}
+
+		case "Class":{
+			articles = doc.getElementsByClass(provider.getValorArticulo());
+			break;
+		}
+
+		case "Attribute":{
+			articles = doc.getElementsByAttributeValueContaining(provider.getAttributeNameArticulo()
+					,provider.getValorArticulo());
+			break;
+		}
+
+		default:{
+			articles = doc.getElementsByTag("article");
+		}
+		}
+		if(articles.size() == 0)
+			throw new ArticlesNotFoundException("article");
 		
+		int i = 0;
+		int articleNumber = 0;
+		for(Element e : articles) {
+			if(i++ >= NEWS_LIMIT_PRIV) {
+				break;
+			}
+			Article a = null;
+			try {
+				a = getArticleFromElement(e, webPage, provider, doc);
+			} catch (ImageNotFoundException | UrlNotAccessibleException e1) {
+				i--;
+				continue;
+			} catch (FirstParagraphNotFoundException e1) {
+				throw new FirstParagraphNotFoundException("paragraph");
+			}
+			if(a != null) {
+				articleNumber++;
+			}
+		}
+		
+		if(articleNumber == 0)
+			throw new ArticlesNotFoundException("article");
+		
+		Elements topics = null;
+
+		String topicType = provider.getTipoTopic();
+		switch(topicType) {
+		case "Tag":{
+			topics = doc.getElementsByTag(provider.getValorTopic());
+			break;
+		}
+
+		case "Class":{
+			topics = doc.getElementsByClass(provider.getValorTopic());
+			break;
+		}
+
+		case "Attribute":{
+			topics = doc.getElementsByAttributeValueContaining(provider.getAttributeNameTopic()
+					,provider.getValorTopic());
+			break;
+		}
+		}
+		
+		if(topics.size() == 0)
+			throw new TopicsNotFoundException("topic");
+
+		int topicNumber = 0;
+		for(Element e : topics) {
+			String href = e.attr("href");
+
+			if(!href.equals("")) {
+				topicNumber++;
+			}
+		}
+		
+		if(topicNumber == 0)
+			throw new TopicsNotFoundException("topic");
+
 	}
 
 

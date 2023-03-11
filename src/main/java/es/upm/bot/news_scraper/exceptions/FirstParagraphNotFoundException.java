@@ -9,6 +9,9 @@ public class FirstParagraphNotFoundException extends Exception {
 
 	public FirstParagraphNotFoundException() {
 		super("No existen parrafos en la url proporcionada.");
-		// TODO Auto-generated constructor stub
+	}
+	
+	public FirstParagraphNotFoundException(String message) {
+		super(message);
 	}
 }

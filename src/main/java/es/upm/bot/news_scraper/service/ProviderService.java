@@ -15,7 +15,7 @@ public class ProviderService {
 	private ProviderRepository providerRepository;
 	
 	public Provider getP(String name, Long serverID) {
-		Optional<Provider> provider = providerRepository.findByNombreAndServerID(name, serverID);
+		Optional<Provider> provider = providerRepository.findByProviderId_ServerIDAndNombre(serverID, name );
 		return provider.get();
 	}
 

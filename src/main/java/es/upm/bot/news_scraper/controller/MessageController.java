@@ -15,6 +15,8 @@ import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
 import es.upm.bot.news_scraper.exceptions.FirstParagraphNotFoundException;
 import es.upm.bot.news_scraper.exceptions.ImageNotFoundException;
 import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
+import es.upm.bot.news_scraper.exceptions.TopicsNotFoundException;
+import es.upm.bot.news_scraper.exceptions.UrlNotAccessibleException;
 import es.upm.bot.news_scraper.service.ProviderService;
 import es.upm.bot.news_scraper.service.TechnicalScraper;
 
@@ -26,15 +28,13 @@ public class MessageController {
 	@Autowired
 	private TechnicalScraper ts;
 
-	@Autowired
-	ProviderService providerService;
 
 	public MessageController() {
 
 	}
 
 	@PostMapping("create/")
-	public void getNewGuild(@RequestBody String message) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	public void getNewGuild(@RequestBody String message){
 		String newServ = message.replace("[", "");
 		newServ = newServ.replace("]", "");
 		ts.createServer(newServ);
@@ -42,27 +42,47 @@ public class MessageController {
 
 
 	@GetMapping("/{serverID}/{username}/news-list")
-	public ResponseEntity<String> getAllList(@PathVariable Long serverID, @PathVariable String username) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
-		String articles = ts.getArticles(username, serverID);
+	public ResponseEntity<String> getAllList(@PathVariable Long serverID, @PathVariable String username){
+		String articles = "";
+		try {
+			articles = ts.getArticles(username, serverID);
+		} catch (ArticlesNotFoundException | UrlNotAccessibleException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
 	@GetMapping("/{serverID}/{username}/next-news")
-	public ResponseEntity<String> getNextList(@PathVariable Long serverID, @PathVariable String username) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	public ResponseEntity<String> getNextList(@PathVariable Long serverID, @PathVariable String username){
 		String articles = ts.getNextArticles(username);
 		return new ResponseEntity<>(articles, HttpStatus.OK);
 	}
 
 	@PostMapping("add-provider/{serverID}")
-	public void addProvider(@PathVariable Long serverID, @RequestBody String message) {
+	public ResponseEntity<String> addProvider(@PathVariable Long serverID, @RequestBody String message) {
 		System.err.println(message);
-		ts.providersFromJson(message, serverID);
+		try {
+			ts.checkNewProvider(message, serverID);
+		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
+				| TopicsNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		}
+		ts.addProvider(message, serverID);
+		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 	
 	@PostMapping("modify-provider/{serverID}")
-	public void modifyProvider(@PathVariable Long serverID, @RequestBody String message) {
+	public ResponseEntity<String> modifyProvider(@PathVariable Long serverID, @RequestBody String message) {
 		System.err.println(message);
-		ts.providersFromJson(message, serverID);
+		try {
+			ts.checkNewProvider(message, serverID);
+		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
+				| TopicsNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		}
+		ts.addProvider(message, serverID);
+		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 	
 	@PostMapping("remove-provider/{serverID}/{provider}")
@@ -71,14 +91,19 @@ public class MessageController {
 	}
 
 	@PostMapping("{serverID}/{username}/change-provider")
-	public void changeProvider(@RequestBody String message, @PathVariable Long serverID, @PathVariable String username) throws ProviderNotFoundException {
+	public void changeProvider(@RequestBody String message, @PathVariable Long serverID, @PathVariable String username){
 		String newProvider = message.replace("[", "");
 		newProvider = newProvider.replace("]", "");
-		ts.changeProvider(username, serverID, newProvider);
+		try {
+			ts.changeProvider(username, serverID, newProvider);
+		} catch (ProviderNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@GetMapping("{serverID}/providers")
-	public ResponseEntity<String> getProvidersWs(@PathVariable Long serverID) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	public ResponseEntity<String> getProvidersWs(@PathVariable Long serverID){
 		System.err.println("Recibo get SERVERID "  + serverID);
 		System.err.println("DOY PROVIDERS "  + ts.getProvidersWs(serverID));
 		
@@ -86,25 +111,37 @@ public class MessageController {
 	}
 
 	@GetMapping("{serverID}/{username}/provider-list")
-	public ResponseEntity<String> getProviders(@PathVariable Long serverID, @PathVariable String username) throws ArticlesNotFoundException, ImageNotFoundException, FirstParagraphNotFoundException {
+	public ResponseEntity<String> getProviders(@PathVariable Long serverID, @PathVariable String username){
 		String providers = ts.getProviders(serverID);
 		System.out.println("PROVIDERS " + providers);
 		return new ResponseEntity<>(providers, HttpStatus.OK);
 	}
 
 	@GetMapping("{serverID}/{username}/topic-list")
-	public ResponseEntity<String> getTopicList(@PathVariable Long serverID, @PathVariable String username) throws ArticlesNotFoundException {
-		String topics = ts.getTopics(username, serverID);
+	public ResponseEntity<String> getTopicList(@PathVariable Long serverID, @PathVariable String username){
+		String topics = "";
+		try {
+			topics = ts.getTopics(username, serverID);
+		} catch (UrlNotAccessibleException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		System.out.println("TOPICS " + topics);
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 
 	@PostMapping("{serverID}/{username}/change-topic")
-	public ResponseEntity<String> topic(@RequestBody String message, @PathVariable Long serverID, @PathVariable String username) throws ArticlesNotFoundException {
+	public ResponseEntity<String> topic(@RequestBody String message, @PathVariable Long serverID, @PathVariable String username){
 		String topic = message.replace("[", "");
 		topic = topic.replace("]", "");
 
-		String topics = ts.getArticlesFromTopic(username, serverID, topic);
+		String topics = "";
+		try {
+			topics = ts.getArticlesFromTopic(username, serverID, topic);
+		} catch (ArticlesNotFoundException | UrlNotAccessibleException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 

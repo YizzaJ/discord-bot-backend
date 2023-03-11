@@ -9,6 +9,10 @@ public class ArticlesNotFoundException extends Exception {
 
 	public ArticlesNotFoundException() {
 		super("No existen articulos en la url proporcionada.");
-		// TODO Auto-generated constructor stub
+
+	}
+	
+	public ArticlesNotFoundException(String message) {
+		super(message);
 	}
 }

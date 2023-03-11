@@ -5,23 +5,28 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Provider")
 public class Provider {
 	
-    @Id
-    @Column(name = "link", nullable = false)
-    private String link;
+    @EmbeddedId
+    private ProviderId providerId;
+	
+//    @Id
+//    @Column(name = "link", nullable = false)
+//    private String link;
+//    
+//    @Id
+//    @Column(name = "serverID", nullable = false)
+//    private Long serverID;
 
     @Column(name = "nombre", nullable = false)
     private String nombre;
     
-    @Column(name = "serverID", nullable = false)
-    private Long serverID;
 
     @Column(name = "uso_articulo", nullable = false)
     private String usoArticulo;
@@ -63,9 +68,9 @@ public class Provider {
 			String attributeNameArticulo, String valorArticulo, String usoParrafo, String tipoParrafo,
 			String attributeNameParrafo, String valorParrafo, String usoTopic, String tipoTopic,
 			String attributeNameTopic, String valorTopic) {
-		this.link = link;
+		providerId = new ProviderId(serverID, link);
+
 		this.nombre = nombre;
-		this.serverID = serverID;
 		this.usoArticulo = usoArticulo;
 		this.tipoArticulo = tipoArticulo;
 		this.attributeNameArticulo = attributeNameArticulo;
@@ -84,13 +89,13 @@ public class Provider {
 		
 	}
 
-	public String getLink() {
-		return link;
-	}
-
-	public void setLink(String link) {
-		this.link = link;
-	}
+//	public String getLink() {
+//		return link;
+//	}
+//
+//	public void setLink(String link) {
+//		this.link = link;
+//	}
 
 	public String getNombre() {
 		return nombre;
@@ -100,13 +105,13 @@ public class Provider {
 		this.nombre = nombre;
 	}
 
-	public Long getServerID() {
-		return serverID;
-	}
-
-	public void setServerID(Long serverID) {
-		this.serverID = serverID;
-	}
+//	public Long getServerID() {
+//		return serverID;
+//	}
+//
+//	public void setServerID(Long serverID) {
+//		this.serverID = serverID;
+//	}
 
 	public String getUsoArticulo() {
 		return usoArticulo;
@@ -204,9 +209,17 @@ public class Provider {
 		this.valorTopic = valorTopic;
 	}
 
+	public ProviderId getProviderId() {
+		return providerId;
+	}
+
+	public void setProviderId(ProviderId providerId) {
+		this.providerId = providerId;
+	}
+
 	@Override
 	public String toString() {
-		return "link=" + link + ", nombre=" + nombre + ", serverID=" + serverID + ", usoArticulo="
+		return "link=" + providerId.getLink() + ", nombre=" + nombre + ", serverID=" + providerId.getServerID() + ", usoArticulo="
 				+ usoArticulo + ", tipoArticulo=" + tipoArticulo + ", attributeNameArticulo=" + attributeNameArticulo
 				+ ", valorArticulo=" + valorArticulo + ", usoParrafo=" + usoParrafo + ", tipoParrafo=" + tipoParrafo
 				+ ", attributeNameParrafo=" + attributeNameParrafo + ", valorParrafo=" + valorParrafo + ", usoTopic="
@@ -217,9 +230,9 @@ public class Provider {
     public String toJson() {
 	
         JsonObjectBuilder builder = Json.createObjectBuilder()
-                .add("webSite", this.link)
+                .add("webSite", providerId.getLink())
                 .add("webSiteName", this.nombre)
-                .add("serverID", this.serverID)
+                .add("serverID", providerId.getServerID())
                 .add("usoArticulo", this.usoArticulo)
                 .add("tipoArticulo", this.tipoArticulo)
                 .add("attributeNameArticulo", this.attributeNameArticulo)
