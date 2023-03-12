@@ -63,12 +63,12 @@ public class MessageController {
 	public ResponseEntity<String> addProvider(@PathVariable Long serverID, @RequestBody String message) {
 		System.err.println(message);
 		try {
-			ts.checkNewProvider(message, serverID);
+			ts.addProvider(message, serverID);
 		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
 				| TopicsNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
-		ts.addProvider(message, serverID);
+		
 		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 	
@@ -76,12 +76,12 @@ public class MessageController {
 	public ResponseEntity<String> modifyProvider(@PathVariable Long serverID, @RequestBody String message) {
 		System.err.println(message);
 		try {
-			ts.checkNewProvider(message, serverID);
+			ts.addProvider(message, serverID);
 		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
 				| TopicsNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		}
-		ts.addProvider(message, serverID);
+		
 		return new ResponseEntity<>(null, HttpStatus.OK);
 	}
 	

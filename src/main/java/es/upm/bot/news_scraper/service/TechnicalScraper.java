@@ -79,10 +79,10 @@ public class TechnicalScraper {
 		return Jsoup.parse(html);
 	}
 
-	private String urlCheck(String webPage, String url) throws UrlNotAccessibleException {	
+	public String urlCheck(String base, String url) throws UrlNotAccessibleException {	
 		String finalUrl = url;
 		if(!url.startsWith("https://") && !url.startsWith("http://"))
-			finalUrl =  webPage + url;	
+			finalUrl =  base + url;	
 
 		isUrlAccessible(finalUrl);
 
@@ -92,11 +92,12 @@ public class TechnicalScraper {
 
 	public static boolean isUrlAccessible(String url) throws UrlNotAccessibleException {
 		HttpClient httpClient = HttpClient.newHttpClient();
-		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+
 		HttpResponse<String> response = null;
 		try {
+			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
 			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException | IllegalArgumentException | InterruptedException e) {
 
 			throw new UrlNotAccessibleException();
 		}
@@ -492,7 +493,10 @@ public class TechnicalScraper {
 
 	}
 
-	public void addProvider(String body, Long serverID) {
+	public void addProvider(String body, Long serverID) throws ArticlesNotFoundException, TopicsNotFoundException, UrlNotAccessibleException, FirstParagraphNotFoundException {
+
+		checkNewProvider(body, serverID);
+
 		providerRepository.save(providersFromJson(body, serverID));
 	}
 
@@ -596,7 +600,7 @@ public class TechnicalScraper {
 		}
 		if(articles.size() == 0)
 			throw new ArticlesNotFoundException("article");
-		
+
 		int i = 0;
 		int articleNumber = 0;
 		for(Element e : articles) {
@@ -616,10 +620,10 @@ public class TechnicalScraper {
 				articleNumber++;
 			}
 		}
-		
+
 		if(articleNumber == 0)
 			throw new ArticlesNotFoundException("article");
-		
+
 		Elements topics = null;
 
 		String topicType = provider.getTipoTopic();
@@ -640,7 +644,7 @@ public class TechnicalScraper {
 			break;
 		}
 		}
-		
+
 		if(topics.size() == 0)
 			throw new TopicsNotFoundException("topic");
 
@@ -652,16 +656,10 @@ public class TechnicalScraper {
 				topicNumber++;
 			}
 		}
-		
+
 		if(topicNumber == 0)
 			throw new TopicsNotFoundException("topic");
 
 	}
-
-
-
-
-
-
 
 }
