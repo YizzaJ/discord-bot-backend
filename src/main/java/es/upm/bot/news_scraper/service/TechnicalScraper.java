@@ -154,7 +154,7 @@ public class TechnicalScraper {
 			articles = doc.getElementsByTag("article");
 		}
 		}
-		if(articles.size() == 0)
+		if(articles == null)
 			throw new ArticlesNotFoundException();
 
 
@@ -598,7 +598,7 @@ public class TechnicalScraper {
 			articles = doc.getElementsByTag("article");
 		}
 		}
-		if(articles.size() == 0)
+		if(articles == null)
 			throw new ArticlesNotFoundException("article");
 
 		int i = 0;
@@ -645,7 +645,7 @@ public class TechnicalScraper {
 		}
 		}
 
-		if(topics.size() == 0)
+		if(topics == null)
 			throw new TopicsNotFoundException("topic");
 
 		int topicNumber = 0;
