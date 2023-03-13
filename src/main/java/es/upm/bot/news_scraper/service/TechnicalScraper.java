@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -63,6 +64,8 @@ public class TechnicalScraper {
 	private UserRepository userRepository;
 
 	private Map<String, Queue<Article>> userNews;
+	
+	private final ReentrantLock mutex = new ReentrantLock();
 
 	public TechnicalScraper() {
 		userNews = new HashMap<>();
@@ -104,6 +107,8 @@ public class TechnicalScraper {
 		return response.statusCode() < 400;
 
 	}
+	
+	@Transactional
 	public void changeProvider(String username, Long serverID, String provider) throws ProviderNotFoundException{
 
 		User user = searchUser(username, serverID);
@@ -131,6 +136,14 @@ public class TechnicalScraper {
 
 		String articleType = provider.getTipoArticulo();
 		System.out.println("articleType " + articleType);
+		
+        mutex.lock();
+        try {
+        	userNews.get(username).clear();
+        } finally {
+            mutex.unlock();
+        }
+		
 
 		Elements articles = null;
 		switch(articleType) {
@@ -175,7 +188,13 @@ public class TechnicalScraper {
 					continue;
 				}
 				if(a != null) {
-					userNews.get(username).add(a);
+			        mutex.lock();
+			        try {
+			        	userNews.get(username).add(a);
+			        } finally {
+			            mutex.unlock();
+			        }
+					
 				}
 			}
 		}).start();;
@@ -192,11 +211,20 @@ public class TechnicalScraper {
 
 	public String getNextArticles(String username) {
 		Queue<Article> articles = new LinkedList<>();
+
+		
 		for(int i = 0 ; i < NEWS_LIMIT_PRIV; i ++) {
 			if(userNews.get(username).isEmpty()) {
 				break;
 			}
-			articles.add(userNews.get(username).poll());
+			
+	        mutex.lock();
+	        try {
+	        	articles.add(userNews.get(username).poll());
+	        } finally {
+	            mutex.unlock();
+	        }
+			
 
 		}
 		String res = articlesToJson(articles);
@@ -287,7 +315,14 @@ public class TechnicalScraper {
 		Document doc = generateDoc(webPage, webPage);
 
 		User user = searchUser(username, serverID);
-		userNews.get(username).clear();
+		
+        mutex.lock();
+        try {
+        	userNews.get(username).clear();
+        } finally {
+            mutex.unlock();
+        }
+		
 
 
 		Provider provider = providerRepository.findById(new ProviderId(serverID, user.getProvider())).get();
@@ -314,7 +349,12 @@ public class TechnicalScraper {
 					continue;
 				} 
 				if(a != null) {
-					userNews.get(username).add(a);
+			        mutex.lock();
+			        try {
+			        	userNews.get(username).add(a);
+			        } finally {
+			            mutex.unlock();
+			        }
 				}
 			}
 		}).start();;
@@ -365,6 +405,7 @@ public class TechnicalScraper {
 		return "https://www.google.com/s2/favicons?domain="+ webPage +"&sz=128";
 	}
 
+	@Transactional
 	private User searchUser(String username, Long serverID){
 		Optional<User> user = userRepository.findByUsernameAndServerID(username, serverID);
 
@@ -493,6 +534,7 @@ public class TechnicalScraper {
 
 	}
 
+	@Transactional
 	public void addProvider(String body, Long serverID) throws ArticlesNotFoundException, TopicsNotFoundException, UrlNotAccessibleException, FirstParagraphNotFoundException {
 
 		checkNewProvider(body, serverID);
@@ -529,6 +571,7 @@ public class TechnicalScraper {
 		this.NEWS_LIMIT_PRIV = max;
 	}
 
+	@Transactional
 	public void createServer(String message) {
 		String[] split = message.split(",");
 		Long serverID = Long.parseLong(split[0]);
