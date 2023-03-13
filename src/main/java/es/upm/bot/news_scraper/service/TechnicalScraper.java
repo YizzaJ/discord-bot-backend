@@ -196,7 +196,8 @@ public class TechnicalScraper {
 			        }
 					
 				}
-			}
+			}	
+			latch.countDown();
 		}).start();;
 
 		try {
@@ -572,12 +573,8 @@ public class TechnicalScraper {
 	}
 
 	@Transactional
-	public void createServer(String message) {
-		String[] split = message.split(",");
-		Long serverID = Long.parseLong(split[0]);
-		String serverName = split[1];
-
-
+	public void createServer(Long serverID, String serverName) {
+		
 		Optional<Server> server = serverRepository.findById(serverID);
 		if(server.isEmpty()) {
 			System.out.println("Nuevo server " + serverID + " " + serverName);
@@ -601,7 +598,7 @@ public class TechnicalScraper {
 
 	@Transactional
 	public void removeProvider(Long serverID, String provider) {
-		providerRepository.deleteByProviderId_ServerIDAndNombre(serverID, provider);
+		providerRepository.deleteByProviderId_ServerIDAndProviderId_Link(serverID, provider);
 
 	}
 
