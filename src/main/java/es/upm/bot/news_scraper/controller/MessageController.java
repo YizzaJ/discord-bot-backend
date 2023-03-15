@@ -22,7 +22,7 @@ import es.upm.bot.news_scraper.service.TechnicalScraper;
 
 @RestController
 @Scope("singleton")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8888"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8888", "http://192.168.1.82:4200"})
 public class MessageController {
 
 	@Autowired
@@ -34,7 +34,7 @@ public class MessageController {
 	}
 
 	@PostMapping("guilds/{serverID}/")
-	public void getNewGuild(@PathVariable Long serverID, @RequestBody String message){
+	public void getNewGuild(@PathVariable Long serverID,@RequestBody String message){
 		String newServ = message.replace("[", "");
 		newServ = newServ.replace("]", "");
 		ts.createServer(serverID, newServ);
@@ -99,6 +99,14 @@ public class MessageController {
 		System.err.println("DOY PROVIDERS "  + ts.getProvidersWs(serverID));
 		
 		return new ResponseEntity<>(ts.getProvidersWs(serverID), HttpStatus.OK);
+	}
+	
+	@GetMapping("servers/{username}")
+	public ResponseEntity<String> getServersWs(@PathVariable String username){
+		System.err.println("Recibo get SERVERS DE  "  + username);
+		System.err.println("DOY SERVERS "  + ts.getServersWs(username));
+		
+		return new ResponseEntity<>(ts.getServersWs(username), HttpStatus.OK);
 	}
 
 	@PostMapping("providers/{serverID}/{username}/")

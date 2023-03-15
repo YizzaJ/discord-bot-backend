@@ -1,5 +1,9 @@
 package es.upm.bot.news_scraper.entity;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -42,6 +46,15 @@ public class Server {
 	public void setServername(String servername) {
 		this.serverName = servername;
 	}
+	
+    public String toJson() {
+    	
+        JsonObjectBuilder builder = Json.createObjectBuilder()
+                .add("id", id.toString())
+                .add("serverName", serverName);
+        JsonObject jsonObj = builder.build();
+        return jsonObj.toString();
+    }
     
     
 }

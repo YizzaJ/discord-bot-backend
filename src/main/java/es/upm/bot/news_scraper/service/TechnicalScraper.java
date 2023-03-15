@@ -51,7 +51,7 @@ import es.upm.bot.news_scraper.repositories.UserRepository;
 @Service
 public class TechnicalScraper {
 
-	private int NEWS_LIMIT_COMPLETA = 50;
+	private int NEWS_LIMIT_COMPLETA = 20;
 	private int NEWS_LIMIT_PRIV = 5;
 
 	@Autowired
@@ -65,10 +65,11 @@ public class TechnicalScraper {
 
 	private Map<String, Queue<Article>> userNews;
 	
-	private final ReentrantLock mutex = new ReentrantLock();
+	private final ReentrantLock mutex;
 
 	public TechnicalScraper() {
 		userNews = new HashMap<>();
+		mutex = new ReentrantLock();
 	}
 
 	private Document generateDoc(String webPage, String url) throws UrlNotAccessibleException {
@@ -408,7 +409,7 @@ public class TechnicalScraper {
 
 	@Transactional
 	private User searchUser(String username, Long serverID){
-		Optional<User> user = userRepository.findByUsernameAndServerID(username, serverID);
+		Optional<User> user = userRepository.findByUserIdUsernameAndUserIdServerID(username, serverID);
 
 		if(user.isPresent()) {
 			userNews.put(username, new LinkedList<>());
@@ -579,8 +580,19 @@ public class TechnicalScraper {
 		if(server.isEmpty()) {
 			System.out.println("Nuevo server " + serverID + " " + serverName);
 			serverRepository.save(new Server(serverID, serverName));
+			loadProviders(serverID);
 		}
+		
 		System.out.println("Estamos en server " + serverID + " " + serverName);
+	}
+	
+	private void loadProviders(Long serverID) {
+		Provider provider = new Provider("El mundo", "https://www.elmundo.es/", serverID, 
+				"Article", "Tag", "", "article", 
+				"FirstParagraph", "", "", "", 
+				"Topic", "Class", "", "ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"); 
+		
+		providerRepository.save(provider);
 	}
 
 	public String getProvidersWs(Long serverID) {
@@ -590,6 +602,21 @@ public class TechnicalScraper {
 			sb.append(prov.toJson()).append(",");
 		}
 		if (providers.size() > 0) {
+			sb.setLength(sb.length() - 1);
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+	
+	public String getServersWs(String username) {
+		List<Server> servers = userRepository.findByUserIdUsername(username).get().stream()
+				.map(user -> serverRepository.findById(user.getUserId().getServerID()).get()).toList();
+		
+		StringBuilder sb = new StringBuilder("[");
+		for (Server server : servers) {
+			sb.append(server.toJson()).append(",");
+		}
+		if (servers.size() > 0) {
 			sb.setLength(sb.length() - 1);
 		}
 		sb.append("]");
@@ -701,5 +728,7 @@ public class TechnicalScraper {
 			throw new TopicsNotFoundException("topic");
 
 	}
+
+
 
 }
