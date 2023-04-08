@@ -51,7 +51,7 @@ import es.upm.bot.news_scraper.repositories.UserRepository;
 @Service
 public class TechnicalScraper {
 
-	private int NEWS_LIMIT_COMPLETA = 20;
+	private int NEWS_LIMIT_COMPLETE = 20;
 	private int NEWS_LIMIT_PRIV = 5;
 
 	@Autowired
@@ -64,7 +64,7 @@ public class TechnicalScraper {
 	private UserRepository userRepository;
 
 	private Map<String, Queue<Article>> userNews;
-	
+
 	private final ReentrantLock mutex;
 
 	public TechnicalScraper() {
@@ -108,7 +108,7 @@ public class TechnicalScraper {
 		return response.statusCode() < 400;
 
 	}
-	
+
 	@Transactional
 	public void changeProvider(String username, Long serverID, String provider) throws ProviderNotFoundException{
 
@@ -117,6 +117,12 @@ public class TechnicalScraper {
 		Optional<Provider> prov = providerRepository.findById(new ProviderId(serverID, provider));
 		if (prov.isPresent()) {
 			user.setProvider(provider);
+			mutex.lock();
+			try {
+				userNews.get(username).clear();
+			} finally {
+				mutex.unlock();
+			}
 			System.err.println("Nuevo provedor de " + username + " es " + user.getProvider());
 			userRepository.save(user);
 		}
@@ -137,14 +143,14 @@ public class TechnicalScraper {
 
 		String articleType = provider.getTipoArticulo();
 		System.out.println("articleType " + articleType);
-		
-        mutex.lock();
-        try {
-        	userNews.get(username).clear();
-        } finally {
-            mutex.unlock();
-        }
-		
+
+		mutex.lock();
+		try {
+			userNews.get(username).clear();
+		} finally {
+			mutex.unlock();
+		}
+
 
 		Elements articles = null;
 		switch(articleType) {
@@ -181,6 +187,11 @@ public class TechnicalScraper {
 				if(i++ >= NEWS_LIMIT_PRIV) {
 					latch.countDown();
 				}
+				
+				if(i == NEWS_LIMIT_COMPLETE) {
+					break;
+				}
+
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPage, provider, doc);
@@ -188,14 +199,14 @@ public class TechnicalScraper {
 					i--;
 					continue;
 				}
-				if(a != null) {
-			        mutex.lock();
-			        try {
-			        	userNews.get(username).add(a);
-			        } finally {
-			            mutex.unlock();
-			        }
-					
+
+				mutex.lock();
+				try {
+					if(a != null) {
+						userNews.get(username).add(a);
+					}
+				} finally {
+					mutex.unlock();
 				}
 			}	
 			latch.countDown();
@@ -214,19 +225,19 @@ public class TechnicalScraper {
 	public String getNextArticles(String username) {
 		Queue<Article> articles = new LinkedList<>();
 
-		
+
 		for(int i = 0 ; i < NEWS_LIMIT_PRIV; i ++) {
 			if(userNews.get(username).isEmpty()) {
 				break;
 			}
-			
-	        mutex.lock();
-	        try {
-	        	articles.add(userNews.get(username).poll());
-	        } finally {
-	            mutex.unlock();
-	        }
-			
+
+			mutex.lock();
+			try {
+				articles.add(userNews.get(username).poll());
+			} finally {
+				mutex.unlock();
+			}
+
 
 		}
 		String res = articlesToJson(articles);
@@ -317,14 +328,14 @@ public class TechnicalScraper {
 		Document doc = generateDoc(webPage, webPage);
 
 		User user = searchUser(username, serverID);
-		
-        mutex.lock();
-        try {
-        	userNews.get(username).clear();
-        } finally {
-            mutex.unlock();
-        }
-		
+
+		mutex.lock();
+		try {
+			userNews.get(username).clear();
+		} finally {
+			mutex.unlock();
+		}
+
 
 
 		Provider provider = providerRepository.findById(new ProviderId(serverID, user.getProvider())).get();
@@ -343,6 +354,11 @@ public class TechnicalScraper {
 				if(i++ >= NEWS_LIMIT_PRIV) {
 					latch.countDown();
 				}
+				
+				if(i == NEWS_LIMIT_COMPLETE) {
+					break;
+				}
+				
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPage, provider, doc);
@@ -350,13 +366,13 @@ public class TechnicalScraper {
 					i--;
 					continue;
 				} 
-				if(a != null) {
-			        mutex.lock();
-			        try {
-			        	userNews.get(username).add(a);
-			        } finally {
-			            mutex.unlock();
-			        }
+				mutex.lock();
+				try {
+					if(a != null) {
+						userNews.get(username).add(a);
+					}
+				} finally {
+					mutex.unlock();
 				}
 			}
 		}).start();;
@@ -565,33 +581,29 @@ public class TechnicalScraper {
 		return providersToJson(serverID);
 	}
 
-	public int getNEWS_LIMIT_COMPLETA() {
-		return NEWS_LIMIT_COMPLETA;
-	}
-
 	public void setMax(int max) {
 		this.NEWS_LIMIT_PRIV = max;
 	}
 
 	@Transactional
 	public void createServer(Long serverID, String serverName) {
-		
+
 		Optional<Server> server = serverRepository.findById(serverID);
 		if(server.isEmpty()) {
 			System.out.println("Nuevo server " + serverID + " " + serverName);
 			serverRepository.save(new Server(serverID, serverName));
 			loadProviders(serverID);
 		}
-		
+
 		System.out.println("Estamos en server " + serverID + " " + serverName);
 	}
-	
+
 	private void loadProviders(Long serverID) {
 		Provider provider = new Provider("El mundo", "https://www.elmundo.es/", serverID, 
 				"Article", "Tag", "", "article", 
 				"FirstParagraph", "", "", "", 
 				"Topic", "Class", "", "ue-c-main-navigation__link ue-c-main-navigation__link-dropdown js-accessible-link"); 
-		
+
 		providerRepository.save(provider);
 	}
 
@@ -607,11 +619,11 @@ public class TechnicalScraper {
 		sb.append("]");
 		return sb.toString();
 	}
-	
+
 	public String getServersWs(String username) {
 		List<Server> servers = userRepository.findByUserIdUsername(username).get().stream()
 				.map(user -> serverRepository.findById(user.getUserId().getServerID()).get()).toList();
-		
+
 		StringBuilder sb = new StringBuilder("[");
 		for (Server server : servers) {
 			sb.append(server.toJson()).append(",");
