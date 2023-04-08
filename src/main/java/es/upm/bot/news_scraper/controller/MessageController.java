@@ -60,7 +60,6 @@ public class MessageController {
 
 	@PostMapping("providers/{serverID}/")
 	public ResponseEntity<String> addProvider(@PathVariable Long serverID, @RequestBody String message) {
-		System.err.println(message);
 		try {
 			ts.addProvider(message, serverID);
 		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
@@ -73,7 +72,6 @@ public class MessageController {
 	
 	@PutMapping("providers/{serverID}/")
 	public ResponseEntity<String> modifyProvider(@PathVariable Long serverID, @RequestBody String message) {
-		System.err.println(message);
 		try {
 			ts.addProvider(message, serverID);
 		} catch (UrlNotAccessibleException | ArticlesNotFoundException | FirstParagraphNotFoundException
@@ -86,25 +84,18 @@ public class MessageController {
 	
 	@PostMapping("providers/remove/{serverID}/")
 	public void removeProvider(@PathVariable Long serverID, @RequestBody String message) {
-		System.out.println("Borramos " + serverID + "  " + message);
 		String provider = message.replace("[", "");
 		provider = provider.replace("]", "");
 		ts.removeProvider(serverID, provider);
 	}
 	
 	@GetMapping("providers/{serverID}/complete/")
-	public ResponseEntity<String> getProvidersWs(@PathVariable Long serverID){
-		System.err.println("Recibo get SERVERID "  + serverID);
-		System.err.println("DOY PROVIDERS "  + ts.getProvidersWs(serverID));
-		
+	public ResponseEntity<String> getProvidersWs(@PathVariable Long serverID){	
 		return new ResponseEntity<>(ts.getProvidersWs(serverID), HttpStatus.OK);
 	}
 	
 	@GetMapping("servers/{username}")
 	public ResponseEntity<String> getServersWs(@PathVariable String username){
-		System.err.println("Recibo get SERVERS DE  "  + username);
-		System.err.println("DOY SERVERS "  + ts.getServersWs(username));
-		
 		return new ResponseEntity<>(ts.getServersWs(username), HttpStatus.OK);
 	}
 
@@ -124,7 +115,6 @@ public class MessageController {
 	@GetMapping("providers/{serverID}/")
 	public ResponseEntity<String> getProviders(@PathVariable Long serverID){
 		String providers = ts.getProviders(serverID);
-		System.out.println("PROVIDERS " + providers);
 		return new ResponseEntity<>(providers, HttpStatus.OK);
 	}
 
@@ -137,7 +127,6 @@ public class MessageController {
 			
 			e.printStackTrace();
 		}
-		System.out.println("TOPICS " + topics);
 		return new ResponseEntity<>(topics, HttpStatus.OK);
 	}
 

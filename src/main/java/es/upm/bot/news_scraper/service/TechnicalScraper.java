@@ -113,7 +113,6 @@ public class TechnicalScraper {
 	public void changeProvider(String username, Long serverID, String provider) throws ProviderNotFoundException{
 
 		User user = searchUser(username, serverID);
-		System.err.println("Cambio provedor de " + username + "de " + user.getProvider() + " a " + provider);
 		Optional<Provider> prov = providerRepository.findById(new ProviderId(serverID, provider));
 		if (prov.isPresent()) {
 			user.setProvider(provider);
@@ -123,7 +122,6 @@ public class TechnicalScraper {
 			} finally {
 				mutex.unlock();
 			}
-			System.err.println("Nuevo provedor de " + username + " es " + user.getProvider());
 			userRepository.save(user);
 		}
 		else
@@ -142,7 +140,6 @@ public class TechnicalScraper {
 		Provider provider = providerRepository.findById(new ProviderId(serverID, webPage)).get();
 
 		String articleType = provider.getTipoArticulo();
-		System.out.println("articleType " + articleType);
 
 		mutex.lock();
 		try {
@@ -241,7 +238,6 @@ public class TechnicalScraper {
 
 		}
 		String res = articlesToJson(articles);
-		System.out.println("LES ENVIO LOS PRIMEROS " + res);
 		return res;
 	}
 
@@ -314,8 +310,6 @@ public class TechnicalScraper {
 
 			if(!href.equals("")) {
 				topicList.add(new Topic(topic, href));
-				System.out.println(e.text());
-				System.out.println(e.attr("href"));
 			}
 		}
 
@@ -534,12 +528,9 @@ public class TechnicalScraper {
 
 		Optional<Server> server = serverRepository.findById(serverID);
 		if(server.isEmpty()) {
-			System.out.println("Nuevo server " + serverID + " " + serverName);
 			serverRepository.save(new Server(serverID, serverName));
 			loadProviders(serverID);
 		}
-
-		System.out.println("Estamos en server " + serverID + " " + serverName);
 	}
 
 	private void loadProviders(Long serverID) {
