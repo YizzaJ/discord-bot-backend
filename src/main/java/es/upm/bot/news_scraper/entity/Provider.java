@@ -16,14 +16,6 @@ public class Provider {
     @EmbeddedId
     private ProviderId providerId;
 	
-//    @Id
-//    @Column(name = "link", nullable = false)
-//    private String link;
-//    
-//    @Id
-//    @Column(name = "serverID", nullable = false)
-//    private Long serverID;
-
     @Column(name = "nombre", nullable = false)
     private String nombre;
     
@@ -89,14 +81,6 @@ public class Provider {
 		
 	}
 
-//	public String getLink() {
-//		return link;
-//	}
-//
-//	public void setLink(String link) {
-//		this.link = link;
-//	}
-
 	public String getNombre() {
 		return nombre;
 	}
@@ -104,14 +88,6 @@ public class Provider {
 	public void setNombre(String nombre) {
 		this.nombre = nombre;
 	}
-
-//	public Long getServerID() {
-//		return serverID;
-//	}
-//
-//	public void setServerID(Long serverID) {
-//		this.serverID = serverID;
-//	}
 
 	public String getUsoArticulo() {
 		return usoArticulo;

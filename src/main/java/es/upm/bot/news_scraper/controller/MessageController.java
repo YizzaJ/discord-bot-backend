@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,7 +46,7 @@ public class MessageController {
 		try {
 			articles = ts.getArticles(username, serverID);
 		} catch (ArticlesNotFoundException | UrlNotAccessibleException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(articles, HttpStatus.OK);
@@ -116,7 +115,7 @@ public class MessageController {
 		try {
 			ts.changeProvider(username, serverID, newProvider);
 		} catch (ProviderNotFoundException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 	}
@@ -135,7 +134,7 @@ public class MessageController {
 		try {
 			topics = ts.getTopics(username, serverID);
 		} catch (UrlNotAccessibleException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		System.out.println("TOPICS " + topics);
@@ -151,7 +150,7 @@ public class MessageController {
 		try {
 			topics = ts.getArticlesFromTopic(username, serverID, topic);
 		} catch (ArticlesNotFoundException | UrlNotAccessibleException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return new ResponseEntity<>(topics, HttpStatus.OK);

@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import es.upm.bot.news_scraper.entity.ProviderId;
 import es.upm.bot.news_scraper.exceptions.ArticlesNotFoundException;
 import es.upm.bot.news_scraper.exceptions.FirstParagraphNotFoundException;
-import es.upm.bot.news_scraper.exceptions.ProviderNotFoundException;
 import es.upm.bot.news_scraper.exceptions.TopicsNotFoundException;
 import es.upm.bot.news_scraper.exceptions.UrlNotAccessibleException;
 import es.upm.bot.news_scraper.repositories.ProviderRepository;

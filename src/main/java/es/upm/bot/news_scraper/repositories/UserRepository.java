@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import es.upm.bot.news_scraper.entity.Server;
 import es.upm.bot.news_scraper.entity.User;
 import es.upm.bot.news_scraper.entity.UserId;
 

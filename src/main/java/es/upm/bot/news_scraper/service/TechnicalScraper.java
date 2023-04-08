@@ -77,7 +77,7 @@ public class TechnicalScraper {
 		try{
 			html = Jsoup.connect(urlCheck(webPage, url)).get().html();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return Jsoup.parse(html);
@@ -500,43 +500,6 @@ public class TechnicalScraper {
 
 	}
 
-	//	public void providersFromJson(String body){	
-	//		StringReader sr = new StringReader(body);
-	//		JsonReader reader = Json.createReader(sr);
-	//		JsonArray array = reader.readArray();
-	//
-	//		for(JsonValue jo : array) {
-	//			JsonArray websitePropertiesPar = jo.asJsonArray();
-	//			boolean webSiteExtracted = false;
-	//			boolean webSiteNameExtracted = false;
-	//			String webSite = "";
-	//			String webSiteName = "";
-	//			ArrayList<Property> propertyList = new ArrayList<>();
-	//			for(JsonValue par : websitePropertiesPar) {
-	//				if(!webSiteExtracted) {
-	//					webSite = par.asJsonObject().getString("webSite");
-	//					webSiteExtracted = true;
-	//				}
-	//				else if(!webSiteNameExtracted) {
-	//					webSiteName = par.asJsonObject().getString("webSiteName");
-	//					webSiteNameExtracted = true;
-	//				}
-	//				else {
-	//					JsonArray arr = par.asJsonArray();
-	//
-	//					for(JsonValue jo2 : arr) {
-	//						JsonObject obj = jo2.asJsonObject();	
-	//						Property property = new Property(obj.getString("use"), obj.getString("type"),
-	//								obj.getString("attributeName"), obj.getString("value"));
-	//						propertyList.add(property);
-	//					}
-	//					scrapingPropertiesList.put(webSite,new ScrapingProperties(webSiteName, webSite, propertyList));	
-	//				}
-	//			}
-	//		}
-	//
-	//	}
-
 	public Provider providersFromJson(String body, Long serverID){	
 		StringReader sr = new StringReader(body);
 		JsonReader reader = Json.createReader(sr);
@@ -546,8 +509,6 @@ public class TechnicalScraper {
 				obj.getString("usoArticulo"), obj.getString("tipoArticulo"), obj.getString("attributeNameArticulo"), obj.getString("valorArticulo"), 
 				obj.getString("usoParrafo"), obj.getString("tipoParrafo"), obj.getString("attributeNameParrafo"), obj.getString("valorParrafo"), 
 				obj.getString("usoTopic"), obj.getString("tipoTopic"), obj.getString("attributeNameTopic"), obj.getString("valorTopic")); 
-
-
 		return provider;
 
 	}
@@ -559,23 +520,6 @@ public class TechnicalScraper {
 
 		providerRepository.save(providersFromJson(body, serverID));
 	}
-
-
-	//	public Map<String, ScrapingProperties> getMsp() {
-	//		return msp;
-	//	}
-	//
-	//	public void addScrapingProperty(String webPage, ScrapingProperties sp) {
-	//		msp.put(webPage, sp);
-	//	}
-	//
-	//	public void addProviders(Map<String, ScrapingProperties> providers) {
-	//		msp.putAll(providers);
-	//	}
-	//
-	//	public void addProviders(String providers) {
-	//		msp.putAll(providersFromJson(providers));
-	//	}
 
 	public String getProviders(Long serverID) {
 		return providersToJson(serverID);

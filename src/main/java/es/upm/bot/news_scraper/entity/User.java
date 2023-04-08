@@ -8,25 +8,16 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "User")
 public class User {
-    
-//    @Id
-//    @Column(name = "username", nullable = false)
-//    private String username;
 	
     @EmbeddedId
     private UserId userId;
-	
-//    @Column(name = "serverID", nullable = false)
-//    private Long serverID;
-    
+
     @Column(name = "provider", nullable = false)
     private String provider;
 
     
 	public User(String username, Long serverID, String provider) {
 		this.userId = new UserId(serverID, username);
-//		this.username = username;
-//		this.serverID = serverID;
 		this.provider = provider;
 	}
 
@@ -63,16 +54,5 @@ public class User {
 	public void setProvider(String provider) {
 		this.provider = provider;
 	}
-
-
-//	public Long getServerID() {
-//		return serverID;
-//	}
-//
-//
-//	public void setServerID(Long serverID) {
-//		this.serverID = serverID;
-//	}
-
 
 }

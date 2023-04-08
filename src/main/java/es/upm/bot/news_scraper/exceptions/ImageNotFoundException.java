@@ -9,6 +9,5 @@ public class ImageNotFoundException extends Exception {
 
 	public ImageNotFoundException() {
 		super("No hay imagen en la url proporcionada.");
-		// TODO Auto-generated constructor stub
 	}
 }

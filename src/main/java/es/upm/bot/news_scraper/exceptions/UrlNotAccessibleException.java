@@ -13,7 +13,6 @@ public class UrlNotAccessibleException extends Exception {
 
 	public UrlNotAccessibleException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
 

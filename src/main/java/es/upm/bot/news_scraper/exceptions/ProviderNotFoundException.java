@@ -9,6 +9,5 @@ public class ProviderNotFoundException extends Exception {
 
 	public ProviderNotFoundException() {
 		super("El proveedor de noticias al que se intenta cambiar no existe.");
-		// TODO Auto-generated constructor stub
 	}
 }
