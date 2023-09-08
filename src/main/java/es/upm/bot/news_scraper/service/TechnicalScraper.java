@@ -51,7 +51,7 @@ import es.upm.bot.news_scraper.repositories.UserRepository;
 @Service
 public class TechnicalScraper {
 
-	private int NEWS_LIMIT_COMPLETE = 20;
+	private int NEWS_LIMIT_COMPLETE = 15;
 	private int NEWS_LIMIT_PRIV = 5;
 
 	@Autowired
@@ -77,7 +77,7 @@ public class TechnicalScraper {
 		try{
 			html = Jsoup.connect(urlCheck(webPage, url)).get().html();
 		} catch (IOException e) {
-			
+
 			e.printStackTrace();
 		}
 		return Jsoup.parse(html);
@@ -184,7 +184,7 @@ public class TechnicalScraper {
 				if(i++ >= NEWS_LIMIT_PRIV) {
 					latch.countDown();
 				}
-				
+
 				if(i == NEWS_LIMIT_COMPLETE) {
 					break;
 				}
@@ -311,6 +311,20 @@ public class TechnicalScraper {
 			if(!href.equals("")) {
 				topicList.add(new Topic(topic, href));
 			}
+			else {
+				for (Element element : e.children()) {
+					String hrefChild = element.absUrl("href");
+					if(!hrefChild.equals("")) {
+						topicList.add(new Topic(topic, hrefChild));
+						break;
+					}
+
+				}
+			}
+
+			//			if(!href.equals("")) {
+			//				topicList.add(new Topic(topic, href));
+			//			}
 		}
 
 		return topicsToJson(topicList);
@@ -348,11 +362,11 @@ public class TechnicalScraper {
 				if(i++ >= NEWS_LIMIT_PRIV) {
 					latch.countDown();
 				}
-				
+
 				if(i == NEWS_LIMIT_COMPLETE) {
 					break;
 				}
-				
+
 				Article a;
 				try {
 					a = getArticleFromElement(e, webPage, provider, doc);
@@ -668,6 +682,16 @@ public class TechnicalScraper {
 
 			if(!href.equals("")) {
 				topicNumber++;
+			}
+			else {
+				for (Element element : e.children()) {
+					String hrefChild = element.absUrl("href");
+					if(!hrefChild.equals("")) {
+						topicNumber++;
+						break;
+					}
+
+				}
 			}
 		}
 
